@@ -244,6 +244,18 @@ def get_dashboard_css():
 
     .main .block-container {
         background: #0F172A !important;
+        padding-top: 3rem !important;
+    }
+
+    /* Hide Streamlit header/toolbar */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        background: rgba(0,0,0,0) !important;
+    }
+
+    /* Reduce Streamlit top padding */
+    .stApp > header {
+        background-color: transparent !important;
     }
 
     /* Header Styling - Dark theme with bright accent */
@@ -589,6 +601,64 @@ def get_dashboard_css():
         background-color: #0EA5E9 !important;
         color: white !important;
         border: 1px solid #0EA5E9 !important;
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 1.8rem !important;
+            text-align: center !important;
+        }
+
+        .sub-header {
+            font-size: 0.9rem !important;
+            text-align: center !important;
+        }
+
+        h2 {
+            font-size: 1.3rem !important;
+        }
+
+        h3 {
+            font-size: 1.1rem !important;
+        }
+
+        [data-testid="stMetricValue"] {
+            font-size: 1.8rem !important;
+        }
+
+        [data-testid="stMetricLabel"] {
+            font-size: 0.75rem !important;
+        }
+
+        .block-container {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        [data-testid="column"] {
+            padding: 0.25rem !important;
+        }
+
+        /* Make tables scrollable on mobile */
+        [data-testid="stDataFrame"] {
+            overflow-x: auto !important;
+        }
+    }
+
+    /* Tablet responsive */
+    @media (max-width: 1024px) and (min-width: 769px) {
+        .main-header {
+            font-size: 2.2rem !important;
+        }
+
+        .sub-header {
+            font-size: 1rem !important;
+        }
+
+        [data-testid="stMetricValue"] {
+            font-size: 2.2rem !important;
+        }
     }
     </style>
     """

@@ -18,8 +18,8 @@ import plotly.express as px
 # Import custom modules
 from config import get_bank_config, get_google_sheet_url, get_all_bank_names
 from core import CampaignDataProcessor
-from ui import ChartBuilder, get_custom_css, get_dashboard_css
-from utils import load_google_sheet, load_excel_file, get_extrape_logo, get_all_bank_logos
+from ui import get_custom_css, get_dashboard_css
+from utils import load_google_sheet, load_excel_file, get_extrape_logo
 
 
 # -------------------------
@@ -48,13 +48,16 @@ if 'selected_bank_detail' not in st.session_state:
    st.session_state.selected_bank_detail = None
 
 
+if 'clear_triggered' not in st.session_state:
+   st.session_state.clear_triggered = False
+
+
 # -------------------------
 # Sidebar - MIS Upload for Each Bank
 # -------------------------
 with st.sidebar:
    st.markdown("### 📁 Upload MIS Files")
    st.markdown("Upload MIS files for each bank to see overall analysis")
-
 
    st.markdown("---")
 
@@ -73,7 +76,10 @@ with st.sidebar:
 
 
            if uploaded_file:
-               if bank not in st.session_state.bank_data or \
+               # Skip processing if clear was just triggered
+               if st.session_state.get('clear_triggered', False):
+                   st.info("⚠️ Data cleared - Click 'Dismiss' below and re-upload if needed")
+               elif bank not in st.session_state.bank_data or \
                        st.session_state.bank_data.get(bank, {}).get('file_name') != uploaded_file.name:
 
                    with st.spinner(f"Processing {bank}..."):
@@ -111,6 +117,12 @@ with st.sidebar:
                                            'config': bank_config
                                        }
                                        st.success(f"✅ {len(df_summary)} campaigns")
+
+                                       # Show View Details button immediately after processing
+                                       if st.button(f"View {bank} Details", key=f"view_{bank_key}_new", use_container_width=True):
+                                           st.session_state.view_mode = 'bank_detail'
+                                           st.session_state.selected_bank_detail = bank
+                                           st.rerun()
                                    else:
                                        st.error("❌ Processing failed")
                                else:
@@ -123,24 +135,46 @@ with st.sidebar:
                    st.success(f"✅ {uploaded_file.name}")
 
                    # View detail button
-                   if st.button(f"View {bank} Details", key=f"view_{bank_key}", width='stretch'):
+                   if st.button(f"View {bank} Details", key=f"view_{bank_key}", use_container_width=True):
                        st.session_state.view_mode = 'bank_detail'
                        st.session_state.selected_bank_detail = bank
                        st.rerun()
            else:
+               # Only remove if file was removed (not on initial load)
                if bank in st.session_state.bank_data:
                    del st.session_state.bank_data[bank]
+                   st.session_state.view_mode = 'overview'
+                   st.session_state.selected_bank_detail = None
                st.info("No file uploaded")
 
 
    st.markdown("---")
 
+   # Clear all data button - Always show if data exists
+   if len(st.session_state.bank_data) > 0:
+       st.markdown("### 🗑️ Clear Data")
+       if st.button("Clear All Data", key='clear_all_button', type='secondary', use_container_width=True):
+           # Store keys to delete
+           keys_to_delete = list(st.session_state.bank_data.keys())
 
-   # Clear all data button
-   if st.session_state.bank_data:
-       if st.button("🗑️ Clear All Data", width='stretch'):
-           st.session_state.bank_data = {}
+           # Clear all bank data
+           for key in keys_to_delete:
+               if key in st.session_state.bank_data:
+                   del st.session_state.bank_data[key]
+
+           # Reset other session state variables
            st.session_state.view_mode = 'overview'
+           st.session_state.selected_bank_detail = None
+           st.session_state.clear_triggered = True
+
+           # Force rerun
+           st.rerun()
+
+   # Show warning if clear was triggered
+   if st.session_state.get('clear_triggered', False) and len(st.session_state.bank_data) == 0:
+       st.info("✅ All data has been cleared successfully!")
+       if st.button("Dismiss", key='dismiss_button', use_container_width=True):
+           st.session_state.clear_triggered = False
            st.rerun()
 
 
@@ -222,11 +256,40 @@ def enhance_fig_visibility(fig, text_font_size=13, text_color=None):
 
 # Navigation
 if st.session_state.view_mode == 'bank_detail':
-   # Back button
-   if st.button("← Back to Overview"):
-       st.session_state.view_mode = 'overview'
-       st.session_state.selected_bank_detail = None
-       st.rerun()
+   # Back button with enhanced visibility
+   col1, col2, col3 = st.columns([1, 2, 1])
+
+   with col1:
+       if st.button("← Back to Overview", key='back_to_overview', type='primary', use_container_width=True):
+           st.session_state.view_mode = 'overview'
+           st.session_state.selected_bank_detail = None
+           st.rerun()
+
+   # Bank selector - only if multiple banks loaded
+   if len(st.session_state.bank_data) > 1:
+       with col2:
+           bank_list = list(st.session_state.bank_data.keys())
+
+           # Get current index
+           if st.session_state.selected_bank_detail in bank_list:
+               current_index = bank_list.index(st.session_state.selected_bank_detail)
+           else:
+               current_index = 0
+
+           # Show selectbox
+           selected_bank = st.selectbox(
+               "Switch to Bank:",
+               options=bank_list,
+               index=current_index,
+               key='bank_switch_selector'
+           )
+
+           # Update if changed
+           if selected_bank != st.session_state.selected_bank_detail:
+               st.session_state.selected_bank_detail = selected_bank
+               st.rerun()
+
+   st.markdown("---")
 
 
 # -------------------------
@@ -257,41 +320,15 @@ if st.session_state.view_mode == 'overview':
             """, unsafe_allow_html=True)
 
 
-    # Bank partners section with logos
+    # Show loaded banks count
     if st.session_state.bank_data:
-        # Convert to tuple for caching compatibility
-        bank_logos = get_all_bank_logos(tuple(st.session_state.bank_data.keys()))
-
-        st.markdown("""
-            <div style='background: #1E293B; padding: 1rem; border-radius: 10px; margin: 0.75rem 0; border: 1px solid #475569; box-shadow: 0 4px 6px rgba(0,0,0,0.3);'>
-                <p style='color: #CBD5E1;
-    font-size: 0.85rem; margin: 0 0 0.75rem 0; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;'>
-                    Partner Banks
+        st.markdown(f"""
+            <div style='background: #1E293B; padding: 0.75rem 1rem; border-radius: 8px; margin: 0.5rem 0; border: 1px solid #475569;'>
+                <p style='color: #CBD5E1; font-size: 0.9rem; margin: 0; text-align: center; font-weight: 600;'>
+                    📊 Analyzing {len(st.session_state.bank_data)} Bank{'s' if len(st.session_state.bank_data) > 1 else ''}: {', '.join(st.session_state.bank_data.keys())}
                 </p>
-                <div style='display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 1.5rem;'>
+            </div>
         """, unsafe_allow_html=True)
-
-        # Display bank logos
-        logo_cols = st.columns(len(st.session_state.bank_data))
-        for idx, (bank_name, col) in enumerate(zip(st.session_state.bank_data.keys(), logo_cols)):
-            with col:
-                if bank_name in bank_logos:
-                    st.markdown(f"""
-                        <div style='text-align: center;'>
-                            <img src='data:image/jpeg;base64,{bank_logos[bank_name]}'
-                                style='height: 40px;
-    width: auto; filter: grayscale(20%); opacity: 0.9;'
-                                title='{bank_name}'/>
-                        </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                        <div style='text-align: center; padding: 0.5rem;'>
-                            <p style='color: #22D3EE; font-weight: 700; font-size: 0.85rem; margin: 0;'>{bank_name}</p>
-                        </div>
-                    """, unsafe_allow_html=True)
-
-        st.markdown("</div></div>", unsafe_allow_html=True)
 
 
     if not st.session_state.bank_data:
@@ -509,26 +546,38 @@ if st.session_state.view_mode == 'overview':
                 y=bank_comparison['Applications'],
                 name='Applications',
                 marker_color='#06B6D4',
-                text=[f"{int(v):,}" for v in bank_comparison['Applications']],
-                textposition='outside'
+                text=[f"<b>{int(v):,}</b>" for v in bank_comparison['Applications']],
+                textposition='outside',
+                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
             ))
             fig_bank_apps.add_trace(go.Bar(
                 x=bank_comparison['Bank'],
                 y=bank_comparison['Card Out'],
                 name='Card Out',
                 marker_color='#34D399',
-                text=[f"{int(v):,}" for v in bank_comparison['Card Out']],
-                textposition='outside'
+                text=[f"<b>{int(v):,}</b>" for v in bank_comparison['Card Out']],
+                textposition='outside',
+                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
             ))
+            # Calculate max value and add 20% padding for text visibility
+            max_val = max(bank_comparison['Applications'].max(), bank_comparison['Card Out'].max())
+            y_max = max_val * 1.25
+
             fig_bank_apps.update_layout(
-                title="Applications vs Card Out (Bank-wise)",
+                title=dict(text="<b>Applications vs Card Out</b>", font=dict(size=16, color='#FFFFFF')),
                 barmode='group',
-                height=380,
+                height=350,
                 template=theme_cfg['template'],
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color']),
-                yaxis=dict(gridcolor=theme_cfg['grid_color']),
+                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=11, color='#FFFFFF')),
+                yaxis=dict(
+                    gridcolor=theme_cfg['grid_color'],
+                    tickfont=dict(size=11, color='#FFFFFF'),
+                    range=[0, y_max]
+                ),
+                font=dict(color='#FFFFFF'),
+                margin=dict(t=50, b=40, l=50, r=20)
             )
             st.plotly_chart(fig_bank_apps, use_container_width=True)
 
@@ -556,26 +605,31 @@ if st.session_state.view_mode == 'overview':
                 color_discrete_sequence=['#06B6D4', '#14B8A6', '#10B981']
             )
             fig_funnel.update_traces(
-                texttemplate='%{text:,}',
+                texttemplate='<b>%{text:,}</b>',
                 textposition='outside',
-                textfont=dict(size=13, color=theme_cfg['font_color'], family='Poppins')
+                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
             )
+            # Calculate max value for funnel and add padding
+            funnel_max = funnel_data['Count'].max()
+            funnel_y_max = funnel_max * 1.25
+
             fig_funnel.update_layout(
-                height=420,
+                height=350,
                 template=theme_cfg['template'],
-                font=dict(family='Poppins', color=theme_cfg['font_color'], size=12),
-                title_font=dict(size=18, color=theme_cfg['font_color'], family='Poppins'),
+                font=dict(family='Poppins', color='#FFFFFF', size=11),
+                title=dict(text="<b>Conversion Funnel</b>", font=dict(size=16, color='#FFFFFF')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
                 xaxis=dict(
                     title='Bank',
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color=theme_cfg['font_color'])
+                    tickfont=dict(size=11, color='#FFFFFF')
                 ),
                 yaxis=dict(
                     title='Count',
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color=theme_cfg['font_color'])
+                    tickfont=dict(size=11, color='#FFFFFF'),
+                    range=[0, funnel_y_max]
                 ),
                 legend=dict(
                     orientation="h",
@@ -583,8 +637,9 @@ if st.session_state.view_mode == 'overview':
                     y=1.02,
                     xanchor="right",
                     x=1,
-                    font=dict(size=11, color=theme_cfg['font_color'])
-                )
+                    font=dict(size=11, color='#FFFFFF')
+                ),
+                margin=dict(t=50, b=40, l=50, r=20)
             )
             st.plotly_chart(fig_funnel, use_container_width=True)
 
@@ -606,9 +661,9 @@ if st.session_state.view_mode == 'overview':
                 marker=dict(line=dict(color=theme_cfg['bg_color'], width=2))
             )
             fig_cost.update_layout(
-                height=420,
+                height=350,
                 template=theme_cfg['template'],
-                title_font=dict(size=18, color=theme_cfg['font_color'], family='Poppins'),
+                title=dict(text="<b>Cost Distribution</b>", font=dict(size=16, color='#FFFFFF')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
                 xaxis=dict(gridcolor=theme_cfg['grid_color']),
@@ -620,8 +675,12 @@ if st.session_state.view_mode == 'overview':
                     y=1,
                     xanchor="left",
                     x=1.02,
-                    font=dict(size=12, color=theme_cfg['font_color'])
+                    font=dict(size=11, color='#FFFFFF')
                 ),
+                margin=dict(t=50, b=40, l=40, r=140)
+            )
+            fig_cost.update_traces(
+                textfont=dict(size=16, family='Poppins', color='#FFFFFF')
             )
             st.plotly_chart(fig_cost, use_container_width=True)
 
@@ -637,18 +696,29 @@ if st.session_state.view_mode == 'overview':
                 y=bank_comparison['App→Card %'],
                 name='App → Card Out %',
                 marker_color='#A78BFA',
-                text=[f"{v:.1f}%" for v in bank_comparison['App→Card %']],
-                textposition='outside'
+                text=[f"<b>{v:.1f}%</b>" for v in bank_comparison['App→Card %']],
+                textposition='outside',
+                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
             ))
+            # Add padding for conversion rate numbers
+            conv_max = bank_comparison['App→Card %'].max()
+            conv_y_max = conv_max * 1.25
+
             fig_conversion.update_layout(
-                title="Conversion Rate (App → Card Out)",
-                height=380,
+                title=dict(text="<b>Conversion Rate</b>", font=dict(size=16, color='#FFFFFF')),
+                height=350,
                 template=theme_cfg['template'],
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color']),
-                yaxis=dict(gridcolor=theme_cfg['grid_color']),
-                showlegend=False
+                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=11, color='#FFFFFF')),
+                yaxis=dict(
+                    gridcolor=theme_cfg['grid_color'],
+                    tickfont=dict(size=11, color='#FFFFFF'),
+                    range=[0, conv_y_max]
+                ),
+                showlegend=False,
+                font=dict(color='#FFFFFF'),
+                margin=dict(t=50, b=40, l=50, r=20)
             )
             st.plotly_chart(fig_conversion, use_container_width=True)
 
@@ -852,12 +922,30 @@ elif st.session_state.view_mode == 'bank_detail':
             color_discrete_sequence=['#0EA5E9', '#10B981', '#F59E0B'] # Updated colors
         )
 
+        # Calculate max for channel funnel and add padding
+        channel_funnel_max = funnel_data['Count'].max()
+        channel_y_max = channel_funnel_max * 1.25
+
         fig_channel_funnel.update_traces(
-            texttemplate='%{text:,}',
-            textposition='outside'
+            texttemplate='<b>%{text:,}</b>',
+            textposition='outside',
+            textfont=dict(size=16, color='#FFFFFF', family='Poppins')
         )
         fig_channel_funnel.update_layout(
-            height=450
+            height=400,
+            template='plotly_dark',
+            paper_bgcolor='rgba(30, 41, 59, 0.6)',
+            plot_bgcolor='rgba(30, 41, 59, 0.4)',
+            font=dict(color='#FFFFFF', family='Poppins'),
+            title=dict(font=dict(size=16, color='#FFFFFF')),
+            xaxis=dict(tickfont=dict(size=11, color='#FFFFFF'), gridcolor='#475569'),
+            yaxis=dict(
+                tickfont=dict(size=11, color='#FFFFFF'),
+                gridcolor='#475569',
+                range=[0, channel_y_max]
+            ),
+            legend=dict(font=dict(size=11, color='#FFFFFF')),
+            margin=dict(t=50, b=40, l=50, r=20)
         )
         st.plotly_chart(fig_channel_funnel, use_container_width=True)
 
