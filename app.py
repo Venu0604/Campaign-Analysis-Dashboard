@@ -18,7 +18,7 @@ import plotly.express as px
 # Import custom modules
 from config import get_bank_config, get_google_sheet_url, get_all_bank_names
 from core import CampaignDataProcessor
-from ui import ChartBuilder, get_custom_css
+from ui import ChartBuilder, get_custom_css, get_dashboard_css
 from utils import load_google_sheet, load_excel_file, get_extrape_logo, get_all_bank_logos
 
 
@@ -123,7 +123,7 @@ with st.sidebar:
                    st.success(f"✅ {uploaded_file.name}")
 
                    # View detail button
-                   if st.button(f"View {bank} Details", key=f"view_{bank_key}", use_container_width=True):
+                   if st.button(f"View {bank} Details", key=f"view_{bank_key}", width='stretch'):
                        st.session_state.view_mode = 'bank_detail'
                        st.session_state.selected_bank_detail = bank
                        st.rerun()
@@ -138,7 +138,7 @@ with st.sidebar:
 
    # Clear all data button
    if st.session_state.bank_data:
-       if st.button("🗑️ Clear All Data", use_container_width=True):
+       if st.button("🗑️ Clear All Data", width='stretch'):
            st.session_state.bank_data = {}
            st.session_state.view_mode = 'overview'
            st.rerun()
@@ -233,437 +233,8 @@ if st.session_state.view_mode == 'bank_detail':
 # Overview Mode - Multi-Bank Analysis
 # -------------------------
 if st.session_state.view_mode == 'overview':
-    # Apply minimalist styling with extrape branding
-    st.markdown("""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        /* Main Container - Dark theme */
-        .main {
-            font-family: 'Poppins', sans-serif;
-            background: #0F172A;
-            color: #E2E8F0;
-        }
-
-
-        .stApp {
-            background: #0F172A !important;
-        }
-
-
-        /* Override Streamlit's default white backgrounds */
-        .main .block-container {
-            background: #0F172A !important;
-        }
-
-
-        /* Header Styling - Dark theme with bright accent */
-        .main-header {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #FFFFFF;
-            text-align: left;
-            margin-bottom: 0.15rem;
-            letter-spacing: -0.5px;
-        }
-
-
-        .sub-header {
-            text-align: left;
-            color: #94A3B8;
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-
-        /* Metric Cards - Dark theme */
-        [data-testid="stMetricValue"] {
-            font-size: 2rem !important;
-            font-weight: 700 !important;
-            color: #FFFFFF !important;
-        }
-
-
-        [data-testid="stMetricLabel"] {
-            font-size: 0.75rem !important;
-            font-weight: 700 !important;
-            color: #94A3B8 !important;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-
-        [data-testid="stMetricDelta"] {
-            font-size: 0.8rem !important;
-            font-weight: 600 !important;
-            color: #22D3EE !important;
-        }
-
-
-        /* Card Style - Dark theme */
-        .css-1r6slb0 {
-            background: #1E293B;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border: 1px solid #334155;
-        }
-
-
-        /* Section Headers - Dark theme */
-        h3 {
-            color: #F1F5F9 !important;
-            font-weight: 700 !important;
-            font-size: 1.1rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.35rem !important;
-            letter-spacing: -0.3px;
-        }
-
-
-        h2 {
-            color: #F1F5F9 !important;
-            font-weight: 700 !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.35rem !important;
-        }
-
-
-        /* Dataframe styling - Dark theme */
-        .dataframe {
-            font-size: 0.9rem !important;
-            border: none !important;
-            background-color: #1E293B !important;
-        }
-
-
-        .dataframe thead th {
-            background-color: #334155 !important;
-            color: #F1F5F9 !important;
-            font-weight: 700 !important;
-            border-bottom: 2px solid #475569 !important;
-            padding: 12px !important;
-        }
-
-
-        .dataframe tbody td {
-            color: #E2E8F0 !important;
-            font-weight: 500 !important;
-            border-bottom: 1px solid #334155 !important;
-            padding: 10px !important;
-            background-color: #1E293B !important;
-        }
-
-
-        .dataframe tbody tr:hover td {
-            background-color: #334155 !important;
-        }
-
-
-        [data-testid="stDataFrame"] {
-            background-color: #1E293B !important;
-            border: 1px solid #475569 !important;
-            border-radius: 8px !important;
-        }
-
-
-        /* Input elements - Dark theme */
-        .stTextInput > div > div > input,
-        .stSelectbox > div > div > select,
-        .stMultiSelect > div > div,
-        .stDateInput > div > div > input {
-            background-color: #334155 !important;
-            color: #E2E8F0 !important;
-            border: 1px solid #475569 !important;
-        }
-
-
-        /* Spinner text - Dark theme */
-        .stSpinner > div {
-            color: #E2E8F0 !important;
-        }
-
-
-        /* Buttons - Bright accent for dark theme */
-        .stButton>button {
-            background-color: #0EA5E9 !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-weight: 600 !important;
-            padding: 0.6rem 1.5rem !important;
-            transition: all 0.2s ease !important;
-        }
-
-
-        .stButton>button:hover {
-            background-color: #0284C7 !important;
-            box-shadow: 0 4px 12px rgba(14,165,233,0.4) !important;
-        }
-
-
-        /* Sidebar styling - Dark theme */
-        [data-testid="stSidebar"] {
-            background-color: #1E293B !important;
-            border-right: 2px solid #475569 !important;
-            padding-top: 1rem !important;
-        }
-
-
-        [data-testid="stSidebar"] .block-container {
-            padding: 0.5rem !important;
-        }
-
-
-        [data-testid="stSidebar"] * {
-            color: #E2E8F0 !important;
-        }
-
-
-        /* Sidebar headings - Dark theme */
-        [data-testid="stSidebar"] h3 {
-            color: #F1F5F9 !important;
-            font-weight: 700 !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.5rem !important;
-            font-size: 0.95rem !important;
-        }
-
-
-        /* Expander styling - Dark theme */
-        .streamlit-expanderHeader {
-            background-color: #334155 !important;
-            border-radius: 6px !important;
-            font-weight: 600 !important;
-            color: #F1F5F9 !important;
-            border: 1px solid #475569 !important;
-            padding: 0.5rem 1rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-
-
-        [data-testid="stExpander"] {
-            margin-bottom: 0.5rem !important;
-        }
-
-
-        .streamlit-expanderContent {
-            padding: 0.75rem !important;
-        }
-
-
-        /* File uploader styling - Dark theme */
-        [data-testid="stFileUploader"] {
-            background-color: transparent !important;
-            margin-bottom: 0.5rem !important;
-        }
-
-
-        [data-testid="stFileUploader"] section {
-            background-color: #334155 !important;
-            border: 2px dashed #64748B !important;
-            border-radius: 8px !important;
-            padding: 1.25rem !important;
-        }
-
-
-        [data-testid="stFileUploader"] section:hover {
-            background-color: #475569 !important;
-            border-color: #0EA5E9 !important;
-        }
-
-
-        [data-testid="stFileUploader"] label {
-            color: #E2E8F0 !important;
-            font-weight: 600 !important;
-        }
-
-
-        [data-testid="stFileUploader"] small {
-            color: #94A3B8 !important;
-        }
-
-
-        [data-testid="stFileUploader"] button {
-            background-color: #475569 !important;
-            color: #E2E8F0 !important;
-            border: 1px solid #64748B !important;
-            font-weight: 500 !important;
-        }
-
-
-        [data-testid="stFileUploader"] button:hover {
-            background-color: #334155 !important;
-            border-color: #0EA5E9 !important;
-        }
-
-
-        /* File uploader drag text - Dark theme */
-        [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] {
-            color: #94A3B8 !important;
-        }
-
-
-        /* Info/Success messages in sidebar - Dark theme */
-        [data-testid="stSidebar"] [data-testid="stAlert"] {
-            background-color: #334155 !important;
-            color: #E2E8F0 !important;
-            border: 1px solid #475569 !important;
-        }
-
-
-        [data-testid="stSidebar"] .stSuccess {
-            background-color: #134E4A !important;
-            color: #6EE7B7 !important;
-            border: 1px solid #10B981 !important;
-        }
-
-
-        [data-testid="stSidebar"] .stInfo {
-            background-color: #0C4A6E !important;
-            color: #7DD3FC !important;
-            border: 1px solid #0EA5E9 !important;
-        }
-
-
-        [data-testid="stSidebar"] .stError {
-            background-color: #7F1D1D !important;
-            color: #FCA5A5 !important;
-            border: 1px solid #EF4444 !important;
-        }
-
-
-        /* Download buttons - Dark theme */
-        .stDownloadButton>button {
-            background-color: #0EA5E9 !important;
-            color: white !important;
-        }
-
-
-        /* Reduce spacing throughout */
-        .block-container {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-        }
-
-
-        /* Horizontal rule */
-        hr {
-            border-color: #E2E8F0 !important;
-            margin: 0.75rem 0 !important;
-        }
-
-
-        /* Reduce spacing in metrics */
-        [data-testid="stMetric"] {
-            padding: 0.25rem !important;
-        }
-
-
-        /* Reduce spacing in columns */
-        [data-testid="column"] {
-            padding: 0.15rem !important;
-        }
-
-
-        /* Reduce markdown spacing */
-        [data-testid="stMarkdownContainer"] {
-            margin-bottom: 0.25rem !important;
-        }
-
-
-        /* Reduce dataframe spacing */
-        [data-testid="stDataFrame"] {
-            margin-bottom: 0.75rem !important;
-        }
-
-
-        /* Reduce chart spacing */
-        [data-testid="stPlotlyChart"] {
-            margin-bottom: 0.75rem !important;
-        }
-
-
-        /* Main content alerts - Dark theme */
-        .stAlert {
-            background-color: #334155 !important;
-            color: #E2E8F0 !important;
-            border: 1px solid #475569 !important;
-        }
-
-
-        .stSuccess {
-            background-color: #134E4A !important;
-            color: #6EE7B7 !important;
-            border: 1px solid #10B981 !important;
-        }
-
-
-        .stInfo {
-            background-color: #0C4A6E !important;
-            color: #7DD3FC !important;
-            border: 1px solid #0EA5E9 !important;
-        }
-
-
-        .stError {
-            background-color: #7F1D1D !important;
-            color: #FCA5A5 !important;
-            border: 1px solid #EF4444 !important;
-        }
-
-
-        .stWarning {
-            background-color: #78350F !important;
-            color: #FCD34D !important;
-            border: 1px solid #F59E0B !important;
-        }
-
-
-        /* Tabs styling - Dark theme */
-        .stTabs [data-baseweb="tab-list"] {
-            background-color: transparent !important;
-        }
-
-
-        .stTabs [data-baseweb="tab"] {
-            background-color: #334155 !important;
-            color: #94A3B8 !important;
-            border: 1px solid #475569 !important;
-        }
-
-
-        .stTabs [aria-selected="true"] {
-            background-color: #0EA5E9 !important;
-            color: white !important;
-            border: 1px solid #0EA5E9 !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-
-    # stronger metric styles for better readability
-    st.markdown("""
-    <style>
-    [data-testid="stMetricValue"] {
-        font-size: 2.4rem !important;
-        font-weight: 800 !important;
-        color: #FFFFFF !important;
-    }
-    [data-testid="stMetricDelta"] {
-        font-size: 1rem !important;
-        font-weight: 700 !important;
-        color: #22D3EE !important;
-    }
-    [data-testid="stMetricLabel"] {
-        font-size: 0.8rem !important;
-        color: #94A3B8 !important;
-        font-weight: 700 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Apply consolidated dashboard styling
+    st.markdown(get_dashboard_css(), unsafe_allow_html=True)
 
 
     # Header with branding
@@ -688,12 +259,13 @@ if st.session_state.view_mode == 'overview':
 
     # Bank partners section with logos
     if st.session_state.bank_data:
-        bank_logos = get_all_bank_logos(list(st.session_state.bank_data.keys()))
+        # Convert to tuple for caching compatibility
+        bank_logos = get_all_bank_logos(tuple(st.session_state.bank_data.keys()))
 
         st.markdown("""
             <div style='background: #1E293B; padding: 1rem; border-radius: 10px; margin: 0.75rem 0; border: 1px solid #475569; box-shadow: 0 4px 6px rgba(0,0,0,0.3);'>
-                <p style='color: #94A3B8; 
-    font-size: 0.7rem; margin: 0 0 0.75rem 0; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;'>
+                <p style='color: #CBD5E1;
+    font-size: 0.85rem; margin: 0 0 0.75rem 0; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;'>
                     Partner Banks
                 </p>
                 <div style='display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 1.5rem;'>
@@ -730,12 +302,12 @@ if st.session_state.view_mode == 'overview':
             # Welcome message
             st.markdown("""
                 <div style='text-align: center; padding: 1rem 0 0.5rem 0;'>
-                    <h2 style='color: #F1F5F9; font-weight: 700; 
-    font-size: 1.75rem; margin-bottom: 0.5rem;'>
+                    <h2 style='color: #FFFFFF; font-weight: 800;
+    font-size: 2rem; margin-bottom: 0.5rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);'>
                         Welcome to Campaign Analytics
                     </h2>
-                    <p style='color: #94A3B8;
-    font-size: 0.95rem; line-height: 1.5;'>
+                    <p style='color: #E2E8F0;
+    font-size: 1.05rem; line-height: 1.5; font-weight: 500;'>
                         Upload MIS files in the sidebar to begin analysis
                     </p>
                 </div>
@@ -744,7 +316,7 @@ if st.session_state.view_mode == 'overview':
             # Features section - using Streamlit native components
             st.markdown("""
                 <div style='background: #1E293B; border-radius: 8px; padding: 1.25rem; border: 1px solid #475569; margin-top: 0.75rem;'>
-                    <p style='color: #F1F5F9; font-weight: 700; font-size: 0.95rem; margin-bottom: 1rem; text-align: center;'>
+                    <p style='color: #FFFFFF; font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.3);'>
                         Key Capabilities
                     </p>
                 </div>
@@ -762,10 +334,10 @@ if st.session_state.view_mode == 'overview':
             for feature in features:
                 st.markdown(f"""
                     <div style='padding: 0.4rem 0;
-    color: #E2E8F0;'>
+    color: #F1F5F9;'>
                         <span style='color: #22D3EE;
     margin-right: 0.5rem; font-weight: 700;'>●</span>
-                        <span style='font-size: 0.9rem;'>{feature}</span>
+                        <span style='font-size: 1rem; font-weight: 500;'>{feature}</span>
                     </div>
                 """, unsafe_allow_html=True)
     else:
@@ -919,7 +491,7 @@ if st.session_state.view_mode == 'overview':
             }).background_gradient(subset=['Applications'], cmap='Blues')
             .background_gradient(subset=['Card Out'], cmap='Greens')
             .background_gradient(subset=['Total Cost (₹)'], cmap='Reds'),
-            use_container_width=True,
+            width='stretch',
             height=320
         )
         st.markdown("---")
@@ -930,8 +502,6 @@ if st.session_state.view_mode == 'overview':
         st.markdown("### Visual Analytics")
         viz_col1, viz_col2 = st.columns(2)
         with viz_col1:
-            import plotly.graph_objects as go
-            import plotly.express as px
             # Applications vs Card Out
             fig_bank_apps = go.Figure()
             fig_bank_apps.add_trace(go.Bar(
@@ -1101,7 +671,7 @@ if st.session_state.view_mode == 'overview':
                 data=output,
                 file_name=f"Multi_Bank_Report_{datetime.now().strftime('%Y%m%d')}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
+                width='stretch'
             )
         with export_col2:
             csv_data = bank_comparison.to_csv(index=False)
@@ -1110,7 +680,7 @@ if st.session_state.view_mode == 'overview':
                 data=csv_data,
                 file_name=f"Multi_Bank_Data_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
-                use_container_width=True
+                width='stretch'
             )
 
 # -------------------------
@@ -1252,7 +822,7 @@ elif st.session_state.view_mode == 'bank_detail':
             .background_gradient(subset=['Card Out'], cmap='Greens')
             .background_gradient(subset=['Total cost (₹)'], cmap='Reds', high=0.8) # Adjusted high value for better color range
             .background_gradient(subset=['CTR (%)'], cmap='PiYG', low=0.2, high=0.8), # Added gradient for CTR
-            use_container_width=True
+            width='stretch'
         )
 
         st.markdown("---")
@@ -1323,7 +893,7 @@ elif st.session_state.view_mode == 'bank_detail':
                 'App→IPA %': '{:.1f}%',
                 'IPA→Card %': '{:.1f}%'
             }),
-            use_container_width=True,
+            width='stretch',
             height=500
         )
 
@@ -1345,7 +915,7 @@ elif st.session_state.view_mode == 'bank_detail':
                 data=output,
                 file_name=f"{selected_bank.replace(' ', '_')}_Report_{datetime.now().strftime('%Y%m%d')}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
+                width='stretch'
             )
 
         with export_col2:
@@ -1356,7 +926,7 @@ elif st.session_state.view_mode == 'bank_detail':
                 data=csv_data,
                 file_name=f"{selected_bank.replace(' ', '_')}_Campaigns_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
-                use_container_width=True
+                width='stretch'
             )
 
 
@@ -1369,7 +939,7 @@ elif st.session_state.view_mode == 'bank_detail':
                     data=mis_csv_data,
                     file_name=f"{selected_bank.replace(' ', '_')}_MIS_{datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv",
-                    use_container_width=True
+                    width='stretch'
                 )
             else:
                 st.info("No matched MIS records")
@@ -1383,7 +953,7 @@ elif st.session_state.view_mode == 'bank_detail':
 st.markdown("---")
 st.markdown("""
     <div style='text-align: center; padding: 2rem 0; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-top: 1px solid #475569; margin-top: 3rem;'>
-        <p style='color: #64748B; font-size: 0.75rem; font-weight: 500;'>
+        <p style='color: #94A3B8; font-size: 0.85rem; font-weight: 500;'>
             Powered by extrape advisor | Data last updated: {timestamp}
         </p>
     </div>

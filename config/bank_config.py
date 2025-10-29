@@ -13,6 +13,15 @@ CAMPAIGN_COSTS = {
     "Email": 0.05,
 }
 
+# Unified professional color scheme for all banks (high visibility on dark background)
+UNIFIED_COLOR_SCHEME = {
+    "primary": "#06B6D4",      # Cyan - highly visible
+    "secondary": "#10B981",     # Emerald green - clear contrast
+    "tertiary": "#F59E0B",      # Amber - warm accent
+    "gradient": "135deg, #06B6D4 0%, #10B981 50%, #F59E0B 100%",
+    "chart_colors": ["#06B6D4", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899"]
+}
+
 # Google Sheets base URL
 GOOGLE_SHEETS_BASE_URL = "https://docs.google.com/spreadsheets/d/184yquIAWt0XyQEYhI3yv0djg9f6pUtZS7TZ4Un7NLXI/export?format=csv&gid="
 
@@ -26,13 +35,7 @@ BANK_CONFIGS = {
         "card_out_status": ["APPROVED"],
         "declined_status": ["DECLINED"],
         "ipa_approved_status": ["APPROVED", "IPA APPROVED", "UNDERWRITER APPROVED", "RCU", "UW"],
-        "color_scheme": {
-            "primary": "#7c3aed",
-            "secondary": "#6366f1",
-            "tertiary": "#8b5cf6"
-        },
-        "gradient": "135deg, #7c3aed 0%, #6366f1 50%, #8b5cf6 100%",
-        "chart_colors": ["#7c3aed", "#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd"]
+        **UNIFIED_COLOR_SCHEME
     },
     "AU Bank": {
         "sheet_gid": "1138241151",
@@ -47,39 +50,27 @@ BANK_CONFIGS = {
             "LOGICAL DELETED", "BUREAU DECLINE CASE"
         ],
         "ipa_approved_status": ["APPROVED"],
-        "color_scheme": {
-            "primary": "#f59e0b",
-            "secondary": "#d97706",
-            "tertiary": "#ea580c"
-        },
-        "gradient": "135deg, #f59e0b 0%, #ea580c 100%",
-        "chart_colors": ["#f59e0b", "#d97706", "#ea580c", "#fb923c", "#fdba74"]
+        **UNIFIED_COLOR_SCHEME
     },
     "RBL Bank": {
         "sheet_gid": "1119698657",
         "sheet_name": "Dump",  # RBL MIS has data in "Dump" sheet
         "identifier_column": "QUICK DATA ENTRY: CAMPAIGN SOURCE",  # Actual column name
-        "status_column": "DISPOSITION",  # Main disposition column
+        "status_column": "disposition.1",  # Second Disposition column (column O) - pandas uses dot for duplicates
         "ipa_column": "FINAL OPS STATUS",  # Final OPS Status for IPA tracking
-        "ops_status_column": "OPS STATUS TILL 23-OCT-25",  # OPS status for card out tracking
-        "card_out_status": ["CARD SETUP"],  # Card setup (181 records)
+        "ops_status_column": "OPS STATUS TILL",  # OPS status for card out tracking (partial match for date flexibility)
+        "card_out_status": ["CARD SETUP"],  # Card setup status
         "declined_status": [
-            "VR REJECTED", "REJECTED BY UW", "CURING REJECTED: CHECKER",
+            "AIP DECLINE", "VR REJECTED", "REJECTED BY UW", "CURING REJECTED: CHECKER",
             "FCU REJECT", "RCU DECLINED", "HRP REJECT", "RAMP REJECT"
-        ],  # All reject statuses (~59 records)
-        "ipa_approved_status": ["CREDIT APPROVED"],  # Credit approved from Final OPS Status (186 records)
+        ],  # All reject statuses including AIP Decline
+        "ipa_approved_status": ["CREDIT APPROVED"],  # Credit approved from Final OPS Status
         "inprogress_status": [
             "FCU/VERIFICATION PENDING", "RETURN TO UPSELL", "RCU PENDING",
             "EMAIL VERIFICATION PENDING", "CURING PENDING: MAKER", "TAT BREACHED QUEUE",
             "UPSELL", "WIP"
         ],  # In progress statuses
-        "color_scheme": {
-            "primary": "#06b6d4",
-            "secondary": "#3b82f6",
-            "tertiary": "#8b5cf6"
-        },
-        "gradient": "135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%",
-        "chart_colors": ["#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b"]
+        **UNIFIED_COLOR_SCHEME
     },
     "HDFC Bank": {
         "sheet_gid": "2141873222",
@@ -91,13 +82,7 @@ BANK_CONFIGS = {
         "declined_status": ["IPA REJECT", "Decline", "DECLINE"],  # All declined - from FINAL_DECISION (12960+734+12=13706)
         "ipa_approved_status": ["APPROVE"],  # IPA approved - from IPA_STATUS column (6878 total)
         "inprogress_status": ["IPA APPROVED DROPOFF CASE", "Inprocess", "INPROCESS"],  # In progress (4962+577+1=5540)
-        "color_scheme": {
-            "primary": "#dc2626",
-            "secondary": "#991b1b",
-            "tertiary": "#b91c1c"
-        },
-        "gradient": "135deg, #dc2626 0%, #991b1b 100%",
-        "chart_colors": ["#dc2626", "#991b1b", "#b91c1c", "#ef4444", "#f87171"]
+        **UNIFIED_COLOR_SCHEME
     },
     "IDFC Bank": {
         "sheet_gid": "0",
@@ -117,31 +102,20 @@ BANK_CONFIGS = {
             "UNDERWRITING PENDING", "VERIFICATION PENDING", "EKYC INITIATED",
             "CURING INITIATED"
         ],  # All in-progress statuses
-        "color_scheme": {
-            "primary": "#059669",
-            "secondary": "#047857",
-            "tertiary": "#065f46"
-        },
-        "gradient": "135deg, #059669 0%, #047857 100%",
-        "chart_colors": ["#059669", "#047857", "#065f46", "#10b981", "#34d399"]
+        **UNIFIED_COLOR_SCHEME
     },
     "Scapia": {
         "sheet_gid": "713580679",
         "identifier_column": "FIRST_UTM_CAMPAIGN",  # Campaign identifier (not _screen)
-        "status_column": "CARD_ISSUED",  # Use card_issued for card out tracking
+        "status_column": "CURRENT_STATUS",  # Use current_status for declined tracking
+        "ops_status_column": "CARD_ISSUED",  # Use card_issued for card out tracking
         "ipa_column": "CURRENT_STATUS",  # Current status for IPA tracking
         "note_column": "NOTES",  # Notes column for additional info
         "card_out_status": ["ISSUED"],  # Card issued (357 records)
-        "declined_status": ["REJECTED"],  # Rejected applications (14,598 records)
+        "declined_status": ["REJECTED"],  # Rejected applications from CURRENT_STATUS
         "ipa_approved_status": ["COMPLETED", "IN_PROGRESS"],  # Consider both as IPA approved (2,851 records)
         "inprogress_status": ["IN_PROGRESS"],  # In progress (2,516 records)
-        "color_scheme": {
-            "primary": "#7c3aed",
-            "secondary": "#6d28d9",
-            "tertiary": "#5b21b6"
-        },
-        "gradient": "135deg, #7c3aed 0%, #6d28d9 100%",
-        "chart_colors": ["#7c3aed", "#6d28d9", "#5b21b6", "#8b5cf6", "#a78bfa"]
+        **UNIFIED_COLOR_SCHEME
     }
 }
 

@@ -6,6 +6,7 @@ Contains reusable functions for data manipulation and calculations
 import pandas as pd
 import streamlit as st
 from config.bank_config import CAMPAIGN_COSTS
+from typing import Optional, Union, List, Dict, Any
 
 
 def find_column(df, keywords):
@@ -42,9 +43,10 @@ def find_column(df, keywords):
     return None
 
 
-def get_channel_cost(channel, costs_dict=None):
+@st.cache_data
+def get_channel_cost(channel: str, costs_dict: Optional[Dict[str, float]] = None) -> float:
     """
-    Get cost for a channel (case-insensitive matching)
+    Get cost for a channel with case-insensitive matching and caching
 
     Args:
         channel: Channel name
@@ -58,16 +60,14 @@ def get_channel_cost(channel, costs_dict=None):
 
     channel_lower = str(channel).lower()
 
+    # Optimized lookup with early return
     if "sms" in channel_lower:
         return costs_dict.get("SMS", 0.10)
-    elif "rcs" in channel_lower:
+    if "rcs" in channel_lower:
         return costs_dict.get("RCS", 0.085)
-    elif "whatsapp" in channel_lower:
-        if "utility" in channel_lower:
-            return costs_dict.get("Whatsapp Utility", 0.115)
-        else:
-            return costs_dict.get("Whatsapp Marketing", 0.80)
-    elif "email" in channel_lower:
+    if "whatsapp" in channel_lower:
+        return costs_dict.get("Whatsapp Utility", 0.115) if "utility" in channel_lower else costs_dict.get("Whatsapp Marketing", 0.80)
+    if "email" in channel_lower:
         return costs_dict.get("Email", 0.05)
 
     return costs_dict.get("SMS", 0.10)
@@ -111,9 +111,9 @@ def calculate_metrics(delivered, clicks, read_count, cost_per_unit, applications
     return metrics
 
 
-def normalize_dataframe_columns(df):
+def normalize_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Normalize DataFrame column names
+    Normalize DataFrame column names (optimized to avoid extra copy)
 
     Args:
         df: DataFrame to normalize
@@ -121,27 +121,26 @@ def normalize_dataframe_columns(df):
     Returns:
         DataFrame with normalized columns
     """
-    df = df.copy()
+    # Strip whitespace and convert to lowercase in one pass
+    df.columns = df.columns.str.strip().str.lower()
 
-    # Strip whitespace
-    df.columns = df.columns.str.strip()
-
-    # Handle duplicate columns
+    # Handle duplicate columns efficiently
     cols = pd.Series(df.columns)
-    for dup in cols[cols.duplicated()].unique():
-        indices = cols[cols == dup].index.values.tolist()
-        cols[indices] = [dup + '_' + str(i) if i != 0 else dup for i in range(len(indices))]
-    df.columns = cols
+    duplicates = cols[cols.duplicated()].unique()
 
-    # Convert to lowercase
-    df.columns = df.columns.str.lower()
+    if len(duplicates) > 0:
+        for dup in duplicates:
+            indices = cols[cols == dup].index.values.tolist()
+            cols[indices] = [f"{dup}_{i}" if i != 0 else dup for i in range(len(indices))]
+        df.columns = cols
 
     return df
 
 
-def load_google_sheet(url):
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def load_google_sheet(url: str) -> Optional[pd.DataFrame]:
     """
-    Load data from Google Sheets CSV export URL
+    Load data from Google Sheets CSV export URL with caching
 
     Args:
         url: Google Sheets CSV export URL

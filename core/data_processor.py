@@ -5,6 +5,7 @@ Handles MIS data processing and campaign metric calculations
 
 import pandas as pd
 import streamlit as st
+from typing import Optional, Dict, Any, Tuple
 from utils.helpers import (
     find_column,
     get_channel_cost,
@@ -199,38 +200,46 @@ class CampaignDataProcessor:
             'in_progress': in_progress
         }
 
-    def get_summary_statistics(self, df_filtered):
+    def get_summary_statistics(self, df_filtered: pd.DataFrame) -> Dict[str, Any]:
         """
-        Calculate aggregate statistics for filtered data
+        Calculate aggregate statistics for filtered data (optimized)
+
+        Args:
+            df_filtered: Filtered DataFrame to analyze
+
+        Returns:
+            Dictionary with summary statistics
         """
         if df_filtered is None or len(df_filtered) == 0:
             return self._empty_statistics()
 
-        # Step 1: Clean and ensure numeric Total cost (₹)
-        if "Total cost (₹)" in df_filtered.columns:
-            df_filtered["Total cost (₹)"] = (
-                df_filtered["Total cost (₹)"]
-                .astype(str)
-                .str.replace("₹", "", regex=False)
-                .str.replace(",", "", regex=False)
-                .str.strip()
-            )
-            df_filtered["Total cost (₹)"] = pd.to_numeric(
-                df_filtered["Total cost (₹)"], errors="coerce"
-            ).fillna(0)
+        # Work on a copy to avoid modifying original
+        df_work = df_filtered.copy()
 
-        # Step 2: Calculate totals
-        total_apps = df_filtered["Applications"].sum()
-        total_cost = df_filtered["Total cost (₹)"].sum()
-        total_ipa_approved = df_filtered["IPA Approved"].sum()
-        total_card_out = df_filtered["Card Out"].sum()
-        total_declined = df_filtered["Declined"].sum()
+        # Step 1: Clean and ensure numeric Total cost (₹) - optimized
+        if "Total cost (₹)" in df_work.columns:
+            # More efficient: convert directly to numeric, coercing errors
+            total_cost_col = df_work["Total cost (₹)"]
 
-        # Step 3: Derived metrics
-        avg_cpa = total_cost / total_apps if total_apps > 0 else 0
-        avg_ctr = df_filtered["CTR (%)"].mean() if len(df_filtered) > 0 else 0
-        app_to_ipa_rate = (total_ipa_approved / total_apps * 100) if total_apps > 0 else 0
-        ipa_to_card_rate = (total_card_out / total_ipa_approved * 100) if total_ipa_approved > 0 else 0
+            # Only apply string operations if not already numeric
+            if total_cost_col.dtype == 'object':
+                df_work["Total cost (₹)"] = pd.to_numeric(
+                    total_cost_col.astype(str).str.replace(r'[₹,\s]', '', regex=True),
+                    errors="coerce"
+                ).fillna(0)
+
+        # Step 2: Calculate totals (vectorized operations)
+        total_apps = int(df_work["Applications"].sum())
+        total_cost = float(df_work["Total cost (₹)"].sum())
+        total_ipa_approved = int(df_work["IPA Approved"].sum())
+        total_card_out = int(df_work["Card Out"].sum())
+        total_declined = int(df_work["Declined"].sum())
+
+        # Step 3: Derived metrics with safe division
+        avg_cpa = total_cost / total_apps if total_apps > 0 else 0.0
+        avg_ctr = float(df_work["CTR (%)"].mean()) if len(df_work) > 0 else 0.0
+        app_to_ipa_rate = (total_ipa_approved / total_apps * 100) if total_apps > 0 else 0.0
+        ipa_to_card_rate = (total_card_out / total_ipa_approved * 100) if total_ipa_approved > 0 else 0.0
 
         # Step 4: Return numeric & formatted cost
         return {
@@ -244,7 +253,7 @@ class CampaignDataProcessor:
             "avg_ctr": avg_ctr,
             "app_to_ipa_rate": app_to_ipa_rate,
             "ipa_to_card_rate": ipa_to_card_rate,
-            "num_campaigns": len(df_filtered)
+            "num_campaigns": len(df_work)
         }
 
     def _empty_statistics(self):

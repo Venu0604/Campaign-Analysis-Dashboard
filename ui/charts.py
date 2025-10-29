@@ -6,12 +6,13 @@ Contains all chart and visualization functions
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+from typing import Dict, Any
 
 
 class ChartBuilder:
-    """Class for building dashboard visualizations"""
+    """Class for building dashboard visualizations with optimized configuration"""
 
-    def __init__(self, color_scheme):
+    def __init__(self, color_scheme: Dict[str, str]):
         """
         Initialize with bank color scheme
 
@@ -20,8 +21,31 @@ class ChartBuilder:
         """
         self.colors = color_scheme
         self.template = 'plotly_dark'
+        # Pre-configure base layout to avoid repetition
+        self.base_layout = {
+            'template': self.template,
+            'paper_bgcolor': 'rgba(30, 41, 59, 0.6)',
+            'plot_bgcolor': 'rgba(30, 41, 59, 0.4)',
+            'font': dict(color='#e2e8f0', size=13, family='Inter'),
+            'title': dict(font=dict(size=16, color='#e2e8f0', family='Inter'))
+        }
 
-    def create_time_series_chart(self, df, date_col='Date'):
+    def _apply_base_layout(self, fig: go.Figure, **kwargs) -> go.Figure:
+        """
+        Apply base layout configuration to a figure
+
+        Args:
+            fig: Plotly figure object
+            **kwargs: Additional layout parameters to override defaults
+
+        Returns:
+            Updated figure
+        """
+        layout_config = {**self.base_layout, **kwargs}
+        fig.update_layout(**layout_config)
+        return fig
+
+    def create_time_series_chart(self, df: pd.DataFrame, date_col: str = 'Date') -> go.Figure:
         """
         Create time series performance chart
 
@@ -61,21 +85,26 @@ class ChartBuilder:
             marker=dict(size=8)
         ))
 
-        fig.update_layout(
+        # Update trace markers for better visibility
+        fig.update_traces(
+            marker=dict(size=10),
+            line=dict(width=3),
+            textfont=dict(size=14, color='#e2e8f0')
+        )
+
+        # Use base layout instead of repeating configuration
+        return self._apply_base_layout(
+            fig,
             title="📈 Performance Trends Over Time",
             xaxis_title="Date",
             yaxis_title="Count",
             hovermode='x unified',
-            height=400,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0', size=12)
+            height=350,
+            xaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12)),
+            yaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12))
         )
 
-        return fig
-
-    def create_ctr_distribution(self, df):
+    def create_ctr_distribution(self, df: pd.DataFrame) -> go.Figure:
         """
         Create CTR distribution histogram
 
@@ -91,19 +120,18 @@ class ChartBuilder:
             color_discrete_sequence=[self.colors["primary"]]
         )
 
-        fig.update_layout(
+        fig.update_traces(textfont=dict(size=13))
+
+        return self._apply_base_layout(
+            fig,
             xaxis_title="Click-Through Rate (%)",
             yaxis_title="Number of Campaigns",
-            height=400,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0', size=12)
+            height=350,
+            xaxis=dict(tickfont=dict(size=12)),
+            yaxis=dict(tickfont=dict(size=12))
         )
 
-        return fig
-
-    def create_conversion_funnel(self, total_apps, total_ipa, total_card_out):
+    def create_conversion_funnel(self, total_apps: int, total_ipa: int, total_card_out: int) -> go.Figure:
         """
         Create conversion funnel chart
 
@@ -120,7 +148,7 @@ class ChartBuilder:
             x=[total_apps, total_ipa, total_card_out],
             textposition="inside",
             textinfo="value+percent initial",
-            textfont=dict(size=14, color='white', family='Inter'),
+            textfont=dict(size=16, color='white', family='Inter', weight='bold'),
             marker={
                 "color": [
                     self.colors["primary"],
@@ -132,18 +160,13 @@ class ChartBuilder:
             connector={"line": {"color": "#475569", "dash": "dot", "width": 3}}
         ))
 
-        fig.update_layout(
-            title=dict(text="📊 Conversion Funnel", font=dict(size=16, color='#e2e8f0')),
-            height=400,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0', size=12)
+        return self._apply_base_layout(
+            fig,
+            title=dict(text="📊 Conversion Funnel", font=dict(size=16, color='#e2e8f0', family='Inter')),
+            height=350
         )
 
-        return fig
-
-    def create_source_performance_matrix(self, df):
+    def create_source_performance_matrix(self, df: pd.DataFrame) -> go.Figure:
         """
         Create source performance scatter chart
 
@@ -170,19 +193,19 @@ class ChartBuilder:
             hover_data=['Total cost (₹)']
         )
 
-        fig.update_layout(
-            height=400,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0', size=12),
-            xaxis=dict(gridcolor='#475569', color='#e2e8f0'),
-            yaxis=dict(gridcolor='#475569', color='#e2e8f0')
+        fig.update_traces(
+            textfont=dict(size=13),
+            marker=dict(size=15, line=dict(width=1, color='#1e293b'))
         )
 
-        return fig
+        return self._apply_base_layout(
+            fig,
+            height=350,
+            xaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12)),
+            yaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12))
+        )
 
-    def create_channel_performance_bar(self, df):
+    def create_channel_performance_bar(self, df: pd.DataFrame) -> go.Figure:
         """
         Create channel performance grouped bar chart
 
@@ -221,17 +244,19 @@ class ChartBuilder:
             marker_color=self.colors["tertiary"]
         ))
 
-        fig.update_layout(
-            title="📢 Performance by Channel",
-            barmode='group',
-            height=400,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0')
+        fig.update_traces(
+            textfont=dict(size=13, color='#e2e8f0'),
+            textposition='outside'
         )
 
-        return fig
+        return self._apply_base_layout(
+            fig,
+            title="📢 Performance by Channel",
+            barmode='group',
+            height=350,
+            xaxis=dict(tickfont=dict(size=12)),
+            yaxis=dict(tickfont=dict(size=12))
+        )
 
     def create_cost_distribution_pie(self, df):
         """
@@ -254,16 +279,14 @@ class ChartBuilder:
         fig.update_traces(
             textposition='inside',
             textinfo='percent+label',
+            textfont=dict(size=13, family='Inter'),
             hovertemplate='<b>%{label}</b><br>Cost: ₹%{value:,.2f}<br>Share: %{percent}'
         )
 
-        fig.update_layout(
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            font=dict(color='#e2e8f0')
+        return self._apply_base_layout(
+            fig,
+            height=350
         )
-
-        return fig
 
     def create_top_campaigns_bar(self, df, top_n=10):
         """
@@ -292,21 +315,16 @@ class ChartBuilder:
 
         fig.update_traces(
             textposition='outside',
-            textfont=dict(size=13, color='#e2e8f0', family='Inter')
+            textfont=dict(size=14, color='#e2e8f0', family='Inter', weight='bold')
         )
 
-        fig.update_layout(
-            height=500,
+        return self._apply_base_layout(
+            fig,
+            height=450,
             showlegend=False,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0', size=11),
-            xaxis=dict(gridcolor='#475569', color='#e2e8f0'),
-            yaxis=dict(gridcolor='#475569', color='#e2e8f0')
+            xaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12)),
+            yaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=11))
         )
-
-        return fig
 
     def create_cost_efficiency_bar(self, df, top_n=10):
         """
@@ -334,16 +352,14 @@ class ChartBuilder:
 
         fig.update_traces(
             texttemplate='₹%{text:.2f}',
-            textposition='outside'
+            textposition='outside',
+            textfont=dict(size=14, color='#e2e8f0', family='Inter', weight='bold')
         )
 
-        fig.update_layout(
-            height=500,
+        return self._apply_base_layout(
+            fig,
+            height=450,
             showlegend=False,
-            template=self.template,
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#e2e8f0')
+            xaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=12)),
+            yaxis=dict(gridcolor='#475569', color='#e2e8f0', tickfont=dict(size=11))
         )
-
-        return fig

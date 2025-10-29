@@ -5,6 +5,8 @@ Handles loading and encoding images for dashboard display
 
 import base64
 from pathlib import Path
+from typing import Optional, Dict
+import streamlit as st
 
 # Base path for assets
 ASSETS_PATH = Path(__file__).parent.parent / "assets"
@@ -21,15 +23,16 @@ BANK_LOGO_MAP = {
     "Scapia": "scapia_cc_logo.jpeg"
 }
 
-def get_base64_image(image_path):
+@st.cache_data
+def get_base64_image(image_path: str) -> Optional[str]:
     """
-    Convert image to base64 string for HTML embedding
+    Convert image to base64 string for HTML embedding (with caching)
 
     Args:
         image_path: Path to image file
 
     Returns:
-        Base64 encoded string
+        Base64 encoded string or None on error
     """
     try:
         with open(image_path, "rb") as img_file:
@@ -39,20 +42,22 @@ def get_base64_image(image_path):
         return None
 
 
-def get_extrape_logo():
+@st.cache_data
+def get_extrape_logo() -> Optional[str]:
     """
-    Get extrape advisor logo as base64
+    Get extrape advisor logo as base64 (cached)
 
     Returns:
         Base64 encoded logo string
     """
     logo_path = IMAGES_PATH / "Extrape-advisor-arc-logo-.webp"
-    return get_base64_image(logo_path)
+    return get_base64_image(str(logo_path))
 
 
-def get_bank_logo(bank_name):
+@st.cache_data
+def get_bank_logo(bank_name: str) -> Optional[str]:
     """
-    Get bank logo as base64
+    Get bank logo as base64 (cached)
 
     Args:
         bank_name: Name of the bank
@@ -65,15 +70,16 @@ def get_bank_logo(bank_name):
 
     logo_filename = BANK_LOGO_MAP[bank_name]
     logo_path = LOGOS_PATH / logo_filename
-    return get_base64_image(logo_path)
+    return get_base64_image(str(logo_path))
 
 
-def get_all_bank_logos(bank_names):
+@st.cache_data
+def get_all_bank_logos(bank_names: tuple) -> Dict[str, str]:
     """
-    Get logos for multiple banks
+    Get logos for multiple banks (cached - requires tuple for hashability)
 
     Args:
-        bank_names: List of bank names
+        bank_names: Tuple of bank names
 
     Returns:
         Dictionary with bank names as keys and base64 logos as values
