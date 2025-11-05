@@ -13,13 +13,14 @@ CAMPAIGN_COSTS = {
     "Email": 0.05,
 }
 
-# Unified professional color scheme for all banks (high visibility on dark background)
+# Professional color scheme inspired by corporate standards
 UNIFIED_COLOR_SCHEME = {
-    "primary": "#06B6D4",      # Cyan - highly visible
-    "secondary": "#10B981",     # Emerald green - clear contrast
-    "tertiary": "#F59E0B",      # Amber - warm accent
-    "gradient": "135deg, #06B6D4 0%, #10B981 50%, #F59E0B 100%",
-    "chart_colors": ["#06B6D4", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899"]
+    "primary": "#2367AE",      # Professional blue
+    "secondary": "#00A3E0",     # Bright blue accent
+    "tertiary": "#FFCD56",      # Gold accent
+    "quaternary": "#00C389",    # Teal accent
+    "gradient": "135deg, #2367AE 0%, #00A3E0 50%, #FFCD56 100%",
+    "chart_colors": ["#2367AE", "#00A3E0", "#FFCD56", "#00C389", "#7B68EE", "#FF6B9D"]
 }
 
 # Google Sheets base URL

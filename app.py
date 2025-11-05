@@ -312,10 +312,8 @@ if st.session_state.view_mode == 'overview':
         extrape_logo = get_extrape_logo()
         if extrape_logo:
             st.markdown(f"""
-                <div style='text-align: right;
-    padding-top: 0.5rem;'>
-                    <img src='data:image/webp;base64,{extrape_logo}' style='height: 45px;
-    width: auto;'/>
+                <div style='text-align: right; padding-top: 0.25rem;'>
+                    <img src='data:image/webp;base64,{extrape_logo}' style='height: 35px; width: auto;'/>
                 </div>
             """, unsafe_allow_html=True)
 
@@ -323,8 +321,8 @@ if st.session_state.view_mode == 'overview':
     # Show loaded banks count
     if st.session_state.bank_data:
         st.markdown(f"""
-            <div style='background: #1E293B; padding: 0.75rem 1rem; border-radius: 8px; margin: 0.5rem 0; border: 1px solid #475569;'>
-                <p style='color: #CBD5E1; font-size: 0.9rem; margin: 0; text-align: center; font-weight: 600;'>
+            <div style='background: #1E293B; padding: 0.5rem 0.75rem; border-radius: 6px; margin: 0.25rem 0; border: 1px solid #475569;'>
+                <p style='color: #CBD5E1; font-size: 0.85rem; margin: 0; text-align: center; font-weight: 600;'>
                     📊 Analyzing {len(st.session_state.bank_data)} Bank{'s' if len(st.session_state.bank_data) > 1 else ''}: {', '.join(st.session_state.bank_data.keys())}
                 </p>
             </div>
@@ -409,11 +407,9 @@ if st.session_state.view_mode == 'overview':
         app_to_card = (total_card_out / total_applications * 100) if total_applications > 0 else 0
 
         # -------------------------
-        # -------------------------
-        # -------------------------
         # Overall Metrics Dashboard
         # -------------------------
-        st.markdown("### Performance Overview")
+        st.markdown("### 📊 Performance Overview")
 
         # Create and normalize the bank_comparison DataFrame
         bank_comparison = pd.DataFrame(bank_wise_stats)
@@ -508,12 +504,10 @@ if st.session_state.view_mode == 'overview':
                 help="Total campaign spend"
             )
 
-        st.markdown("---")
-
         # -------------------------
         # Bank-Wise Comparison Table
         # -------------------------
-        st.markdown("### Bank Performance Comparison")
+        st.markdown("### 🏦 Bank Performance Comparison")
         st.dataframe(
             bank_comparison.style.format({
                 'Applications': '{:,.0f}',
@@ -529,60 +523,147 @@ if st.session_state.view_mode == 'overview':
             .background_gradient(subset=['Card Out'], cmap='Greens')
             .background_gradient(subset=['Total Cost (₹)'], cmap='Reds'),
             width='stretch',
-            height=320
+            height=250
         )
-        st.markdown("---")
 
         # -------------------------
         # Visual Analytics
         # -------------------------
-        st.markdown("### Visual Analytics")
-        viz_col1, viz_col2 = st.columns(2)
-        with viz_col1:
-            # Applications vs Card Out
-            fig_bank_apps = go.Figure()
-            fig_bank_apps.add_trace(go.Bar(
-                x=bank_comparison['Bank'],
-                y=bank_comparison['Applications'],
-                name='Applications',
-                marker_color='#06B6D4',
-                text=[f"<b>{int(v):,}</b>" for v in bank_comparison['Applications']],
-                textposition='outside',
-                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
-            ))
-            fig_bank_apps.add_trace(go.Bar(
-                x=bank_comparison['Bank'],
-                y=bank_comparison['Card Out'],
-                name='Card Out',
-                marker_color='#34D399',
-                text=[f"<b>{int(v):,}</b>" for v in bank_comparison['Card Out']],
-                textposition='outside',
-                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
-            ))
-            # Calculate max value and add 20% padding for text visibility
-            max_val = max(bank_comparison['Applications'].max(), bank_comparison['Card Out'].max())
-            y_max = max_val * 1.25
+        st.markdown("### 📈 Visual Analytics")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-            fig_bank_apps.update_layout(
-                title=dict(text="<b>Applications vs Card Out</b>", font=dict(size=16, color='#FFFFFF')),
-                barmode='group',
-                height=350,
+        # First Row - Card Out by Source and Cost Distribution
+        viz_row1_col1, viz_row1_col2 = st.columns([1, 1], gap="medium")
+
+        with viz_row1_col1:
+            # Card Out by Source & Bank (REPLACEMENT for Applications vs Card Out)
+            # Get source-wise card out data from all banks
+            source_cardout_data = []
+            for bank, data in st.session_state.bank_data.items():
+                df = data['summary']
+                # Check if Source column exists in the summary
+                if 'Source' in df.columns:
+                    source_stats = df.groupby('Source').agg({'Card Out': 'sum'}).reset_index()
+                    source_stats['Bank'] = bank
+                    source_cardout_data.append(source_stats)
+
+            # Get top sources by card out and by bank
+            if source_cardout_data:
+                df_source_cardout = pd.concat(source_cardout_data, ignore_index=True)
+
+                # Get unique banks and sources
+                banks = df_source_cardout['Bank'].unique()
+                sources = df_source_cardout.groupby('Source')['Card Out'].sum().sort_values(ascending=False).index
+
+                # Create stacked bar chart showing Source breakdown by Bank
+                fig_cardout_combined = go.Figure()
+
+                # Define colors for different banks
+                available_colors = ['#2367AE', '#00C389', '#FFCD56', '#00A3E0', '#7B68EE', '#FF6B9D']
+                bank_colors = {bank: available_colors[i % len(available_colors)] for i, bank in enumerate(banks)}
+
+                # Add a trace for each bank
+                for bank in banks:
+                    bank_data = df_source_cardout[df_source_cardout['Bank'] == bank]
+                    bank_source_data = bank_data.set_index('Source').reindex(sources, fill_value=0)
+
+                    fig_cardout_combined.add_trace(go.Bar(
+                        name=bank,
+                        x=sources,
+                        y=bank_source_data['Card Out'],
+                        marker_color=bank_colors.get(bank, '#2367AE'),
+                        text=[f"<b>{int(v):,}</b>" if v > 0 else "" for v in bank_source_data['Card Out']],
+                        textposition='inside',
+                        textfont=dict(size=11, color='#FFFFFF', family='Poppins'),
+                        hovertemplate='<b>%{x}</b><br>Bank: ' + bank + '<br>Card Out: %{y:,}<extra></extra>'
+                    ))
+
+                # Calculate max value
+                source_totals = df_source_cardout.groupby('Source')['Card Out'].sum()
+                cardout_y_max = source_totals.max() * 1.15
+
+                fig_cardout_combined.update_layout(
+                    title=dict(text="<b>Card Out by Source (Bank Breakdown)</b>", font=dict(size=14, color='#FFFFFF')),
+                    height=380,
+                    template=theme_cfg['template'],
+                    paper_bgcolor=theme_cfg['bg_color'],
+                    plot_bgcolor=theme_cfg['bg_color'],
+                    barmode='stack',
+                    xaxis=dict(
+                        title='Source',
+                        gridcolor=theme_cfg['grid_color'],
+                        tickfont=dict(size=9, color='#FFFFFF'),
+                        tickangle=-45
+                    ),
+                    yaxis=dict(
+                        title='Card Out',
+                        gridcolor=theme_cfg['grid_color'],
+                        tickfont=dict(size=10, color='#FFFFFF'),
+                        range=[0, cardout_y_max]
+                    ),
+                    font=dict(color='#FFFFFF'),
+                    margin=dict(t=50, b=80, l=50, r=20),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1,
+                        font=dict(size=10, color='#FFFFFF'),
+                        title=dict(text="Bank", font=dict(size=10, color='#FFFFFF'))
+                    )
+                )
+                st.plotly_chart(fig_cardout_combined, use_container_width=True)
+            else:
+                st.warning("Source column not found in campaign data. Please ensure the Source field is included in the identifiers sheet.")
+
+        with viz_row1_col2:
+            # --- Cost Distribution by Bank (ORIGINAL - RESTORED) ---
+            fig_cost = px.pie(
+                bank_comparison.sort_values('Total Cost (₹)', ascending=False),
+                values='Total Cost (₹)',
+                names='Bank',
+                title="<b>Cost Distribution by Bank</b>",
+                hole=0.4,
+                color_discrete_sequence=px.colors.qualitative.Set2
+            )
+            fig_cost.update_traces(
+                textposition='outside',
+                textinfo='label+percent',
+                hovertemplate='<b>%{label}</b><br>Cost: ₹%{value:,.0f}<br>Share: %{percent}<extra></extra>',
+                textfont=dict(size=14, family='Poppins', color=theme_cfg['font_color']),
+                marker=dict(line=dict(color=theme_cfg['bg_color'], width=2))
+            )
+            fig_cost.update_layout(
+                height=380,
                 template=theme_cfg['template'],
+                title=dict(text="<b>Cost Distribution</b>", font=dict(size=14, color='#FFFFFF')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=11, color='#FFFFFF')),
-                yaxis=dict(
-                    gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color='#FFFFFF'),
-                    range=[0, y_max]
+                xaxis=dict(gridcolor=theme_cfg['grid_color']),
+                yaxis=dict(gridcolor=theme_cfg['grid_color']),
+                showlegend=True,
+                legend=dict(
+                    orientation="v",
+                    yanchor="top",
+                    y=1,
+                    xanchor="left",
+                    x=1.02,
+                    font=dict(size=10, color='#FFFFFF')
                 ),
-                font=dict(color='#FFFFFF'),
-                margin=dict(t=50, b=40, l=50, r=20)
+                margin=dict(t=50, b=30, l=30, r=120)
             )
-            st.plotly_chart(fig_bank_apps, use_container_width=True)
+            fig_cost.update_traces(
+                textfont=dict(size=16, family='Poppins', color='#FFFFFF')
+            )
+            st.plotly_chart(fig_cost, use_container_width=True)
 
-            # --- Conversion Funnel (Better Comparison) ---
-            st.markdown("#### Conversion Funnel Comparison")
+        # Second Row - Conversion Funnel and Conversion Rate
+        st.markdown("<br>", unsafe_allow_html=True)
+        viz_row2_col1, viz_row2_col2 = st.columns([1, 1], gap="medium")
+
+        with viz_row2_col1:
+            # --- Conversion Funnel (ORIGINAL - RESTORED) ---
             funnel_data = bank_comparison.melt(
                 id_vars='Bank',
                 value_vars=['Applications', 'IPA Approved', 'Card Out'],
@@ -602,7 +683,7 @@ if st.session_state.view_mode == 'overview':
                 barmode='group',
                 text='Count',
                 title="<b>Conversion Funnel by Bank</b>",
-                color_discrete_sequence=['#06B6D4', '#14B8A6', '#10B981']
+                color_discrete_sequence=['#2367AE', '#00A3E0', '#FFCD56']
             )
             fig_funnel.update_traces(
                 texttemplate='<b>%{text:,}</b>',
@@ -614,21 +695,21 @@ if st.session_state.view_mode == 'overview':
             funnel_y_max = funnel_max * 1.25
 
             fig_funnel.update_layout(
-                height=350,
+                height=380,
                 template=theme_cfg['template'],
-                font=dict(family='Poppins', color='#FFFFFF', size=11),
-                title=dict(text="<b>Conversion Funnel</b>", font=dict(size=16, color='#FFFFFF')),
+                font=dict(family='Poppins', color='#FFFFFF', size=10),
+                title=dict(text="<b>Conversion Funnel</b>", font=dict(size=14, color='#FFFFFF')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
                 xaxis=dict(
                     title='Bank',
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color='#FFFFFF')
+                    tickfont=dict(size=10, color='#FFFFFF')
                 ),
                 yaxis=dict(
                     title='Count',
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color='#FFFFFF'),
+                    tickfont=dict(size=10, color='#FFFFFF'),
                     range=[0, funnel_y_max]
                 ),
                 legend=dict(
@@ -637,53 +718,13 @@ if st.session_state.view_mode == 'overview':
                     y=1.02,
                     xanchor="right",
                     x=1,
-                    font=dict(size=11, color='#FFFFFF')
+                    font=dict(size=10, color='#FFFFFF')
                 ),
-                margin=dict(t=50, b=40, l=50, r=20)
+                margin=dict(t=50, b=30, l=50, r=20)
             )
             st.plotly_chart(fig_funnel, use_container_width=True)
 
-        with viz_col2:
-            # --- Cost Distribution by Bank (Theme-Aware) ---
-            fig_cost = px.pie(
-                bank_comparison.sort_values('Total Cost (₹)', ascending=False),
-                values='Total Cost (₹)',
-                names='Bank',
-                title="<b>Cost Distribution by Bank</b>",
-                hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Set2
-            )
-            fig_cost.update_traces(
-                textposition='outside',
-                textinfo='label+percent',
-                hovertemplate='<b>%{label}</b><br>Cost: ₹%{value:,.0f}<br>Share: %{percent}<extra></extra>',
-                textfont=dict(size=14, family='Poppins', color=theme_cfg['font_color']),
-                marker=dict(line=dict(color=theme_cfg['bg_color'], width=2))
-            )
-            fig_cost.update_layout(
-                height=350,
-                template=theme_cfg['template'],
-                title=dict(text="<b>Cost Distribution</b>", font=dict(size=16, color='#FFFFFF')),
-                paper_bgcolor=theme_cfg['bg_color'],
-                plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color']),
-                yaxis=dict(gridcolor=theme_cfg['grid_color']),
-                showlegend=True,
-                legend=dict(
-                    orientation="v",
-                    yanchor="top",
-                    y=1,
-                    xanchor="left",
-                    x=1.02,
-                    font=dict(size=11, color='#FFFFFF')
-                ),
-                margin=dict(t=50, b=40, l=40, r=140)
-            )
-            fig_cost.update_traces(
-                textfont=dict(size=16, family='Poppins', color='#FFFFFF')
-            )
-            st.plotly_chart(fig_cost, use_container_width=True)
-
+        with viz_row2_col2:
             # Conversion Rate Comparison
             bank_comparison['App→Card %'] = (
                 (bank_comparison['Card Out'] / bank_comparison['Applications'] * 100)
@@ -695,7 +736,7 @@ if st.session_state.view_mode == 'overview':
                 x=bank_comparison['Bank'],
                 y=bank_comparison['App→Card %'],
                 name='App → Card Out %',
-                marker_color='#A78BFA',
+                marker_color='#7B68EE',
                 text=[f"<b>{v:.1f}%</b>" for v in bank_comparison['App→Card %']],
                 textposition='outside',
                 textfont=dict(size=18, color='#FFFFFF', family='Poppins')
@@ -705,28 +746,27 @@ if st.session_state.view_mode == 'overview':
             conv_y_max = conv_max * 1.25
 
             fig_conversion.update_layout(
-                title=dict(text="<b>Conversion Rate</b>", font=dict(size=16, color='#FFFFFF')),
-                height=350,
+                title=dict(text="<b>Conversion Rate</b>", font=dict(size=14, color='#FFFFFF')),
+                height=380,
                 template=theme_cfg['template'],
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=11, color='#FFFFFF')),
+                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=10, color='#FFFFFF')),
                 yaxis=dict(
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=11, color='#FFFFFF'),
+                    tickfont=dict(size=10, color='#FFFFFF'),
                     range=[0, conv_y_max]
                 ),
                 showlegend=False,
                 font=dict(color='#FFFFFF'),
-                margin=dict(t=50, b=40, l=50, r=20)
+                margin=dict(t=50, b=30, l=50, r=20)
             )
             st.plotly_chart(fig_conversion, use_container_width=True)
 
         # -------------------------
         # Export Section
         # -------------------------
-        st.markdown("---")
-        st.markdown("### Export Reports")
+        st.markdown("### 📥 Export Reports")
         export_col1, export_col2 = st.columns(2)
         with export_col1:
             output = BytesIO()
@@ -853,8 +893,6 @@ elif st.session_state.view_mode == 'bank_detail':
                 help="Number of campaigns analyzed"
             )
 
-        st.markdown("---")
-
         # Channel Performance Analysis
         st.markdown("### 📡 Channel-Wise Performance")
         # Group by channel
@@ -895,8 +933,6 @@ elif st.session_state.view_mode == 'bank_detail':
             width='stretch'
         )
 
-        st.markdown("---")
-
         # Visual Analytics - Channel Funnel
         st.markdown("### 📈 Channel-Wise Conversion Funnel")
         funnel_data = channel_analysis.melt(
@@ -919,7 +955,7 @@ elif st.session_state.view_mode == 'bank_detail':
             barmode='group',
             text='Count',
             title=f"<b>{selected_bank} Conversion Funnel by Channel</b>",
-            color_discrete_sequence=['#0EA5E9', '#10B981', '#F59E0B'] # Updated colors
+            color_discrete_sequence=['#2367AE', '#00A3E0', '#FFCD56'] # Professional colors
         )
 
         # Calculate max for channel funnel and add padding
@@ -932,24 +968,22 @@ elif st.session_state.view_mode == 'bank_detail':
             textfont=dict(size=16, color='#FFFFFF', family='Poppins')
         )
         fig_channel_funnel.update_layout(
-            height=400,
+            height=300,
             template='plotly_dark',
             paper_bgcolor='rgba(30, 41, 59, 0.6)',
             plot_bgcolor='rgba(30, 41, 59, 0.4)',
             font=dict(color='#FFFFFF', family='Poppins'),
-            title=dict(font=dict(size=16, color='#FFFFFF')),
-            xaxis=dict(tickfont=dict(size=11, color='#FFFFFF'), gridcolor='#475569'),
+            title=dict(font=dict(size=14, color='#FFFFFF')),
+            xaxis=dict(tickfont=dict(size=10, color='#FFFFFF'), gridcolor='#475569'),
             yaxis=dict(
-                tickfont=dict(size=11, color='#FFFFFF'),
+                tickfont=dict(size=10, color='#FFFFFF'),
                 gridcolor='#475569',
                 range=[0, channel_y_max]
             ),
-            legend=dict(font=dict(size=11, color='#FFFFFF')),
-            margin=dict(t=50, b=40, l=50, r=20)
+            legend=dict(font=dict(size=10, color='#FFFFFF')),
+            margin=dict(t=40, b=30, l=40, r=15)
         )
         st.plotly_chart(fig_channel_funnel, use_container_width=True)
-
-        st.markdown("---")
 
         # Campaign List Table
         st.markdown("### 📑 All Campaigns")
@@ -982,13 +1016,11 @@ elif st.session_state.view_mode == 'bank_detail':
                 'IPA→Card %': '{:.1f}%'
             }),
             width='stretch',
-            height=500
+            height=400
         )
 
-        st.markdown("---")
-        
         # Export options for detail view
-        st.markdown("### Export Campaign Data")
+        st.markdown("### 📥 Export Campaign Data")
         export_col1, export_col2, export_col3 = st.columns(3)
         
         with export_col1:
@@ -1038,10 +1070,9 @@ elif st.session_state.view_mode == 'bank_detail':
 
 
 # Footer
-st.markdown("---")
 st.markdown("""
-    <div style='text-align: center; padding: 2rem 0; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-top: 1px solid #475569; margin-top: 3rem;'>
-        <p style='color: #94A3B8; font-size: 0.85rem; font-weight: 500;'>
+    <div style='text-align: center; padding: 1rem 0; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-top: 1px solid #475569; margin-top: 1.5rem;'>
+        <p style='color: #94A3B8; font-size: 0.75rem; font-weight: 500; margin: 0;'>
             Powered by extrape advisor | Data last updated: {timestamp}
         </p>
     </div>

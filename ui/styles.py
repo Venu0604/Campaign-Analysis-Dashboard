@@ -244,7 +244,8 @@ def get_dashboard_css():
 
     .main .block-container {
         background: #0F172A !important;
-        padding-top: 3rem !important;
+        padding-top: 1rem !important;
+        max-width: 100% !important;
     }
 
     /* Hide Streamlit header/toolbar */
@@ -260,44 +261,48 @@ def get_dashboard_css():
 
     /* Header Styling - Dark theme with bright accent */
     .main-header {
-        font-size: 2.8rem;
-        font-weight: 800;
+        font-size: 3.2rem;
+        font-weight: 900;
         color: #FFFFFF;
         text-align: left;
         margin-bottom: 0.3rem;
+        margin-top: 0;
         letter-spacing: -0.5px;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 20px rgba(6, 182, 212, 0.3);
-        line-height: 1.2;
+        text-shadow: 0 3px 10px rgba(255,255,255,0.3), 0 0 25px rgba(6, 182, 212, 0.5);
+        line-height: 1.1;
     }
 
     .sub-header {
         text-align: left;
-        color: #F1F5F9;
-        font-size: 1.15rem;
+        color: #FFFFFF;
+        font-size: 1.5rem;
         margin-bottom: 0.5rem;
-        font-weight: 600;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        margin-top: 0;
+        font-weight: 700;
+        text-shadow: 0 2px 6px rgba(255,255,255,0.2);
     }
 
     /* Metric Cards - Dark theme */
     [data-testid="stMetricValue"] {
-        font-size: 2.6rem !important;
-        font-weight: 800 !important;
+        font-size: 2.8rem !important;
+        font-weight: 900 !important;
         color: #FFFFFF !important;
+        text-shadow: 0 2px 8px rgba(255,255,255,0.3) !important;
     }
 
     [data-testid="stMetricLabel"] {
-        font-size: 0.95rem !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
-        color: #CBD5E1 !important;
+        color: #F1F5F9 !important;
         text-transform: uppercase;
         letter-spacing: 0.8px;
     }
 
     [data-testid="stMetricDelta"] {
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         font-weight: 700 !important;
-        color: #22D3EE !important;
+        color: #FDE047 !important;
+        text-shadow: 0 1px 4px rgba(253, 224, 71, 0.4) !important;
     }
 
     /* Card Style - Dark theme */
@@ -312,31 +317,40 @@ def get_dashboard_css():
     /* Section Headers - Dark theme */
     h3 {
         color: #FFFFFF !important;
-        font-weight: 700 !important;
-        font-size: 1.4rem !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.35rem !important;
+        font-weight: 800 !important;
+        font-size: 1.75rem !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
         letter-spacing: -0.3px;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        text-shadow: 0 2px 6px rgba(255,255,255,0.2);
     }
 
     h2 {
         color: #FFFFFF !important;
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+        text-shadow: 0 2px 8px rgba(255,255,255,0.25);
+    }
+
+    h4 {
+        color: #FFFFFF !important;
         font-weight: 700 !important;
-        font-size: 1.75rem !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.35rem !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        font-size: 1.4rem !important;
+        text-shadow: 0 1px 4px rgba(255,255,255,0.15);
     }
 
     /* Paragraph text visibility */
     p {
-        color: #E2E8F0 !important;
+        color: #FFFFFF !important;
+        font-size: 1.15rem !important;
+        font-weight: 500 !important;
     }
 
     /* Dataframe styling - Dark theme */
     .dataframe {
-        font-size: 1rem !important;
+        font-size: 1.25rem !important;
         border: none !important;
         background-color: #1E293B !important;
     }
@@ -344,18 +358,19 @@ def get_dashboard_css():
     .dataframe thead th {
         background-color: #334155 !important;
         color: #FFFFFF !important;
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
-        border-bottom: 2px solid #475569 !important;
-        padding: 14px !important;
+        font-weight: 800 !important;
+        font-size: 1.35rem !important;
+        border-bottom: 3px solid #475569 !important;
+        padding: 18px !important;
+        text-shadow: 0 1px 3px rgba(255,255,255,0.15);
     }
 
     .dataframe tbody td {
-        color: #F1F5F9 !important;
-        font-weight: 500 !important;
-        font-size: 1rem !important;
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+        font-size: 1.2rem !important;
         border-bottom: 1px solid #334155 !important;
-        padding: 12px !important;
+        padding: 16px !important;
         background-color: #1E293B !important;
     }
 
@@ -375,9 +390,9 @@ def get_dashboard_css():
     .stMultiSelect > div > div,
     .stDateInput > div > div > input {
         background-color: #334155 !important;
-        color: #F1F5F9 !important;
-        font-size: 1rem !important;
-        font-weight: 500 !important;
+        color: #FFFFFF !important;
+        font-size: 1.15rem !important;
+        font-weight: 600 !important;
         border: 1px solid #475569 !important;
     }
 
@@ -386,21 +401,22 @@ def get_dashboard_css():
         color: #E2E8F0 !important;
     }
 
-    /* Buttons - Bright accent for dark theme */
+    /* Buttons - Professional blue theme */
     .stButton>button {
-        background-color: #0EA5E9 !important;
+        background-color: #2367AE !important;
         color: white !important;
-        font-size: 1rem !important;
+        font-size: 1.25rem !important;
         border: none !important;
         border-radius: 8px !important;
-        font-weight: 600 !important;
-        padding: 0.65rem 1.6rem !important;
+        font-weight: 700 !important;
+        padding: 0.85rem 2rem !important;
         transition: all 0.2s ease !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
     }
 
     .stButton>button:hover {
-        background-color: #0284C7 !important;
-        box-shadow: 0 4px 12px rgba(14,165,233,0.4) !important;
+        background-color: #1B5391 !important;
+        box-shadow: 0 4px 12px rgba(35,103,174,0.4) !important;
     }
 
     /* Sidebar styling - Dark theme */
@@ -415,27 +431,29 @@ def get_dashboard_css():
     }
 
     [data-testid="stSidebar"] * {
-        color: #E2E8F0 !important;
+        color: #F1F5F9 !important;
     }
 
     [data-testid="stSidebar"] h3 {
         color: #FFFFFF !important;
-        font-weight: 700 !important;
+        font-weight: 800 !important;
         margin-top: 0.5rem !important;
         margin-bottom: 0.5rem !important;
-        font-size: 1.1rem !important;
+        font-size: 1.3rem !important;
+        text-shadow: 0 1px 4px rgba(255,255,255,0.15);
     }
 
     /* Expander styling - Dark theme */
     .streamlit-expanderHeader {
         background-color: #334155 !important;
         border-radius: 6px !important;
-        font-weight: 600 !important;
-        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
         color: #FFFFFF !important;
         border: 1px solid #475569 !important;
-        padding: 0.6rem 1.1rem !important;
+        padding: 0.7rem 1.2rem !important;
         margin-bottom: 0.5rem !important;
+        text-shadow: 0 1px 3px rgba(255,255,255,0.1);
     }
 
     [data-testid="stExpander"] {
@@ -465,14 +483,15 @@ def get_dashboard_css():
     }
 
     [data-testid="stFileUploader"] label {
-        color: #F1F5F9 !important;
-        font-weight: 600 !important;
-        font-size: 1.05rem !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
     }
 
     [data-testid="stFileUploader"] small {
-        color: #CBD5E1 !important;
-        font-size: 0.95rem !important;
+        color: #F1F5F9 !important;
+        font-size: 1.05rem !important;
+        font-weight: 500 !important;
     }
 
     [data-testid="stFileUploader"] button {
@@ -516,43 +535,113 @@ def get_dashboard_css():
         border: 1px solid #EF4444 !important;
     }
 
-    /* Download buttons - Dark theme */
+    /* Download buttons - Professional blue */
     .stDownloadButton>button {
-        background-color: #0EA5E9 !important;
+        background-color: #2367AE !important;
         color: white !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        padding: 0.85rem 2rem !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+
+    .stDownloadButton>button:hover {
+        background-color: #1B5391 !important;
+        box-shadow: 0 4px 12px rgba(35,103,174,0.4) !important;
     }
 
     /* Reduce spacing throughout */
     .block-container {
         padding-top: 0.5rem !important;
         padding-bottom: 0.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
     }
 
     hr {
-        border-color: #E2E8F0 !important;
-        margin: 0.75rem 0 !important;
+        border-color: #334155 !important;
+        margin: 0.5rem 0 !important;
     }
 
     [data-testid="stMetric"] {
-        padding: 0.25rem !important;
+        padding: 0.1rem !important;
     }
 
     [data-testid="column"] {
-        padding: 0.15rem !important;
+        padding: 0.1rem !important;
     }
 
     [data-testid="stMarkdownContainer"] {
-        margin-bottom: 0.25rem !important;
+        margin-bottom: 0.15rem !important;
     }
 
     [data-testid="stDataFrame"] {
-        margin-bottom: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
     }
 
     [data-testid="stPlotlyChart"] {
-        margin-bottom: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Chart Borders and Divisions */
+    [data-testid="stPlotlyChart"] > div {
+        border: 3px solid #475569 !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        background: rgba(30, 41, 59, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        margin-bottom: 1rem !important;
+        height: 100% !important;
+    }
+
+    /* Section Dividers */
+    .chart-section-divider {
+        border-top: 4px solid #64748B !important;
+        border-bottom: 2px solid #475569 !important;
+        margin: 1.5rem 0 !important;
+        padding: 0.5rem 0 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Horizontal rules between sections */
+    hr {
+        border-color: #64748B !important;
+        border-width: 2px !important;
+        margin: 1.5rem 0 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Column alignment - equal height columns */
+    [data-testid="column"] {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0.5rem !important;
+    }
+
+    /* Ensure equal height for side-by-side elements */
+    [data-testid="column"] > div {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Metric card borders */
+    [data-testid="stMetric"] {
+        border: 2px solid #475569 !important;
+        border-radius: 10px !important;
+        padding: 1rem !important;
+        background: rgba(30, 41, 59, 0.2) !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Table borders */
+    [data-testid="stDataFrame"] {
+        border: 3px solid #64748B !important;
+        border-radius: 10px !important;
+        padding: 0.5rem !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        margin-bottom: 1rem !important;
+        background: rgba(30, 41, 59, 0.3) !important;
     }
 
     /* Main content alerts - Dark theme */
@@ -598,9 +687,9 @@ def get_dashboard_css():
     }
 
     .stTabs [aria-selected="true"] {
-        background-color: #0EA5E9 !important;
+        background-color: #2367AE !important;
         color: white !important;
-        border: 1px solid #0EA5E9 !important;
+        border: 1px solid #2367AE !important;
     }
 
     /* Mobile Responsive Styles */
