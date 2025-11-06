@@ -50,13 +50,13 @@ def get_custom_css(bank_config):
         background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f0f9ff 100%) !important;
     }}
 
-    /* Main Header with Gradient */
+    /* Main Header with Gradient - Optimized for Web */
     .main-header {{
-        font-size: 3.5rem;
+        font-size: 2rem;
         font-weight: 800;
         color: #0f172a;
         text-align: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.3rem;
         animation: fadeInDown 0.8s ease-in-out;
         text-shadow: none;
     }}
@@ -64,8 +64,8 @@ def get_custom_css(bank_config):
     .sub-header {{
         text-align: center;
         color: #1e293b;
-        font-size: 1.65rem;
-        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
         font-weight: 600;
         text-shadow: none;
     }}
@@ -344,23 +344,23 @@ def get_custom_css(bank_config):
         font-weight: 600 !important;
     }}
 
-    /* Metric Containers */
+    /* Metric Containers - Optimized for Web */
     [data-testid="stMetricValue"] {{
         color: #0f172a !important;
         font-weight: 800 !important;
-        font-size: 3.2rem !important;
+        font-size: 1.8rem !important;
     }}
 
     [data-testid="stMetricLabel"] {{
         color: #334155 !important;
         font-weight: 700 !important;
-        font-size: 1.1rem !important;
+        font-size: 0.85rem !important;
     }}
 
     [data-testid="stMetricDelta"] {{
         color: #ea580c !important;
         font-weight: 700 !important;
-        font-size: 1.1rem !important;
+        font-size: 0.75rem !important;
     }}
 
     /* Animation */
@@ -757,13 +757,13 @@ def get_dashboard_css():
         background-color: transparent !important;
     }
 
-    /* Header Styling - Circle Health inspired */
+    /* Header Styling - Circle Health inspired - Optimized for Web */
     .main-header {
-        font-size: 3.5rem;
+        font-size: 2rem;
         font-weight: 800;
         color: #0f172a;
         text-align: left;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.2rem;
         margin-top: 0;
         letter-spacing: -0.5px;
         text-shadow: none;
@@ -773,23 +773,23 @@ def get_dashboard_css():
     .sub-header {
         text-align: left;
         color: #1e293b;
-        font-size: 1.65rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
         margin-top: 0;
         font-weight: 600;
         text-shadow: none;
     }
 
-    /* Metric Cards - Circle Health inspired */
+    /* Metric Cards - Circle Health inspired - Optimized for Web */
     [data-testid="stMetricValue"] {
-        font-size: 3.2rem !important;
+        font-size: 1.8rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
         text-shadow: none !important;
     }
 
     [data-testid="stMetricLabel"] {
-        font-size: 1.1rem !important;
+        font-size: 0.85rem !important;
         font-weight: 700 !important;
         color: #334155 !important;
         text-transform: uppercase;
@@ -797,7 +797,7 @@ def get_dashboard_css():
     }
 
     [data-testid="stMetricDelta"] {
-        font-size: 1.1rem !important;
+        font-size: 0.75rem !important;
         font-weight: 700 !important;
         color: #ea580c !important;
         text-shadow: none !important;
@@ -812,13 +812,13 @@ def get_dashboard_css():
         border: none;
     }
 
-    /* Section Headers - Light theme */
+    /* Section Headers - Light theme - Optimized for Web */
     h3 {
         color: #0f172a !important;
         font-weight: 700 !important;
-        font-size: 2rem !important;
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
+        font-size: 1.3rem !important;
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
         letter-spacing: -0.3px;
         text-shadow: none;
     }
@@ -826,23 +826,23 @@ def get_dashboard_css():
     h2 {
         color: #0f172a !important;
         font-weight: 700 !important;
-        font-size: 2.25rem !important;
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
+        font-size: 1.5rem !important;
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
         text-shadow: none;
     }
 
     h4 {
         color: #1e293b !important;
         font-weight: 600 !important;
-        font-size: 1.6rem !important;
+        font-size: 1.1rem !important;
         text-shadow: none;
     }
 
-    /* Paragraph text visibility */
+    /* Paragraph text visibility - Optimized for Web */
     p {
         color: #1e293b !important;
-        font-size: 1.1rem !important;
+        font-size: 0.9rem !important;
         font-weight: 600 !important;
     }
 
@@ -1360,47 +1360,49 @@ def get_dashboard_css():
         transform: translateY(-1px);
     }
 
-    /* Reduce spacing throughout */
+    /* Reduce spacing throughout - Optimized for Web Fitting */
     .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
+        padding-top: 0.3rem !important;
+        padding-bottom: 0.3rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        max-width: 100% !important;
     }
 
     hr {
         border-color: #334155 !important;
-        margin: 0.5rem 0 !important;
+        margin: 0.3rem 0 !important;
     }
 
     [data-testid="stMetric"] {
-        padding: 0.1rem !important;
+        padding: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
     }
 
     [data-testid="column"] {
-        padding: 0.1rem !important;
+        padding: 0.2rem !important;
     }
 
     [data-testid="stMarkdownContainer"] {
-        margin-bottom: 0.15rem !important;
+        margin-bottom: 0.1rem !important;
     }
 
     [data-testid="stDataFrame"] {
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
     }
 
     [data-testid="stPlotlyChart"] {
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
     }
 
-    /* Chart Borders and Divisions - Light theme with soft shadows */
+    /* Chart Borders and Divisions - Light theme with soft shadows - Optimized for Web */
     [data-testid="stPlotlyChart"] > div {
         border: 1px solid #e2e8f0 !important;
-        border-radius: 16px !important;
-        padding: 1rem !important;
+        border-radius: 12px !important;
+        padding: 0.5rem !important;
         background: white !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.5rem !important;
         height: 100% !important;
     }
 
@@ -1435,23 +1437,23 @@ def get_dashboard_css():
         flex-direction: column !important;
     }
 
-    /* Metric card borders - Light theme with soft rounded corners */
+    /* Metric card borders - Light theme with soft rounded corners - Optimized for Web */
     [data-testid="stMetric"] {
         border: 1px solid #e2e8f0 !important;
-        border-radius: 16px !important;
-        padding: 1rem !important;
+        border-radius: 12px !important;
+        padding: 0.6rem !important;
         background: white !important;
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
         box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
     }
 
-    /* Table borders */
+    /* Table borders - Optimized for Web */
     [data-testid="stDataFrame"] {
         border: 1px solid #e2e8f0 !important;
         border-radius: 12px !important;
-        padding: 0.5rem !important;
+        padding: 0.3rem !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.5rem !important;
         background: white !important;
     }
 
