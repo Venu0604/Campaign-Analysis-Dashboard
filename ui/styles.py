@@ -6,7 +6,7 @@ Contains CSS generation and styling functions
 
 def get_custom_css(bank_config):
     """
-    Generate custom CSS based on bank configuration
+    Generate custom CSS based on bank configuration - Circle Health inspired
 
     Args:
         bank_config: Bank configuration dictionary with color scheme
@@ -16,106 +16,351 @@ def get_custom_css(bank_config):
     """
     # Extract color values from unified color scheme
     colors = {
-        "primary": bank_config.get("primary", "#06B6D4"),
-        "secondary": bank_config.get("secondary", "#10B981"),
-        "tertiary": bank_config.get("tertiary", "#F59E0B")
+        "primary": bank_config.get("primary", "#3b82f6"),
+        "secondary": bank_config.get("secondary", "#0ea5e9"),
+        "tertiary": bank_config.get("tertiary", "#fcc038")
     }
-    gradient = bank_config.get("gradient", "135deg, #06B6D4 0%, #10B981 50%, #F59E0B 100%")
+    gradient = bank_config.get("gradient", "135deg, #3b82f6 0%, #0ea5e9 50%, #fcc038 100%")
 
     return f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
 
-    /* Global Styles */
+    /* Force light mode globally */
+    :root {{
+        color-scheme: light !important;
+    }}
+
+    html {{
+        color-scheme: light !important;
+    }}
+
+    body {{
+        color-scheme: light !important;
+    }}
+
+    /* Global Styles - Circle Health Light Theme */
     .main {{
-        font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-        color: #e2e8f0;
+        font-family: 'Nunito', sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f0f9ff 100%);
+        color: #1e293b;
+    }}
+
+    .stApp {{
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f0f9ff 100%) !important;
     }}
 
     /* Main Header with Gradient */
     .main-header {{
-        font-size: 3rem;
+        font-size: 3.5rem;
         font-weight: 800;
-        background: linear-gradient({gradient});
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #0f172a;
         text-align: center;
         margin-bottom: 0.5rem;
         animation: fadeInDown 0.8s ease-in-out;
-        filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 20px rgba(6, 182, 212, 0.3));
+        text-shadow: none;
     }}
 
     .sub-header {{
         text-align: center;
-        color: #F1F5F9;
-        font-size: 1.25rem;
+        color: #1e293b;
+        font-size: 1.65rem;
         margin-bottom: 2rem;
         font-weight: 600;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        text-shadow: none;
     }}
 
-    /* Sidebar Styling */
+    /* Sidebar Styling - Light Theme */
     [data-testid="stSidebar"] {{
-        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-        border-right: 1px solid #334155;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+        border-right: 1px solid #cbd5e1 !important;
     }}
 
     [data-testid="stSidebar"] * {{
-        color: #e2e8f0 !important;
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] h3 {{
+        color: #0f172a !important;
+        font-weight: 800 !important;
+        font-size: 1.6rem !important;
+    }}
+
+    [data-testid="stSidebar"] p {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] label {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] .stMarkdown {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] div {{
+        color: #0f172a !important;
+    }}
+
+    [data-testid="stSidebar"] span {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }}
+
+    /* File Uploader in Sidebar - Force Visibility */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] {{
+        background-color: white !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] * {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] label {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section {{
+        background-color: #f8fafc !important;
+        border: 2px dashed #3b82f6 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] small {{
+        color: #0f172a !important;
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button {{
+        background-color: #3b82f6 !important;
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] p {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] div {{
+        color: #0f172a !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] span {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }}
+
+    /* Expander in Sidebar */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {{
+        background-color: white !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }}
+
+    /* Fix dark header in expander */
+    [data-testid="stSidebar"] [data-testid="stExpander"] > summary {{
+        background-color: white !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] > summary > div {{
+        background-color: white !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] summary {{
+        background-color: white !important;
+    }}
+
+    /* Remove all dark backgrounds from sidebar */
+    [data-testid="stSidebar"] div[style*="background"] {{
+        background: white !important;
+    }}
+
+    [data-testid="stSidebar"] div[class*="st-emotion"] {{
+        background-color: transparent !important;
+    }}
+
+    /* Target specific emotion cache classes that might have dark backgrounds */
+    [data-testid="stSidebar"] .st-emotion-cache-11fa8fd {{
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .st-emotion-cache-11fa8fd * {{
+        color: #0f172a !important;
+    }}
+
+    /* Expander text visibility - Force all elements */
+    [data-testid="stSidebar"] [data-testid="stExpander"] {{
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] * {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] p {{
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {{
+        color: #0f172a !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] * {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }}
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }}
+
+    /* Force expander header text visibility - all states */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {{
+        background-color: white !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader * {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader p {{
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover {{
+        background-color: #f1f5f9 !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover * {{
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover p {{
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:active {{
+        background-color: #e2e8f0 !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:active * {{
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:focus {{
+        background-color: white !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:focus * {{
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }}
+
+    /* Expander content area */
+    [data-testid="stSidebar"] .streamlit-expanderContent {{
+        background-color: #f8fafc !important;
+    }}
+
+    [data-testid="stSidebar"] .streamlit-expanderContent * {{
+        color: #0f172a !important;
     }}
 
     /* Bank Selection Buttons */
     [data-testid="stSidebar"] button[kind="primary"] {{
-        background: linear-gradient({gradient}) !important;
+        background-color: #3b82f6 !important;
         color: white !important;
         border: none !important;
-        font-weight: 600 !important;
-        box-shadow: 0 4px 15px rgba({colors['primary']}, 0.4) !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
     }}
 
     [data-testid="stSidebar"] button[kind="secondary"] {{
-        background: rgba(30, 41, 59, 0.6) !important;
-        color: #94a3b8 !important;
-        border: 1px solid #334155 !important;
-        font-weight: 500 !important;
+        background-color: #f1f5f9 !important;
+        color: #1e293b !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        border-radius: 12px !important;
     }}
 
     [data-testid="stSidebar"] button[kind="secondary"]:hover {{
-        background: rgba(51, 65, 85, 0.8) !important;
-        color: #e2e8f0 !important;
-        border-color: #475569 !important;
+        background-color: #e2e8f0 !important;
+        color: #0f172a !important;
+        border-color: #3b82f6 !important;
     }}
 
-    /* Filter Section */
+    /* Filter Section - Light Theme */
     .filter-section {{
-        background: rgba(30, 41, 59, 0.6);
+        background: white;
         padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         margin-bottom: 1rem;
-        border: 1px solid #334155;
+        border: 1px solid #e2e8f0;
     }}
 
-    /* Streamlit Elements Dark Mode */
+    /* Streamlit Elements Light Mode */
     .stSelectbox, .stDateInput, .stTextInput {{
-        background-color: #1e293b !important;
+        background-color: white !important;
     }}
 
     .stSelectbox > div > div, .stDateInput > div > div, .stTextInput > div > div {{
-        background-color: #334155 !important;
-        color: #e2e8f0 !important;
-        border: 1px solid #475569 !important;
+        background-color: white !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        font-size: 1.05rem !important;
+        font-weight: 600 !important;
     }}
 
     /* Metric Containers */
     [data-testid="stMetricValue"] {{
-        color: {colors['primary']} !important;
-        font-weight: 700;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+        font-size: 3.2rem !important;
+    }}
+
+    [data-testid="stMetricLabel"] {{
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
     }}
 
     [data-testid="stMetricDelta"] {{
-        color: #94a3b8 !important;
+        color: #ea580c !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
     }}
 
     /* Animation */
@@ -130,7 +375,7 @@ def get_custom_css(bank_config):
         }}
     }}
 
-    /* Tabs Styling */
+    /* Tabs Styling - Light Theme */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
         background-color: transparent;
@@ -138,81 +383,320 @@ def get_custom_css(bank_config):
 
     .stTabs [data-baseweb="tab"] {{
         height: 50px;
-        background: rgba(30, 41, 59, 0.6);
+        background: white;
         border-radius: 10px 10px 0 0;
         padding: 0 24px;
         font-weight: 600;
-        color: #94a3b8;
-        border: 1px solid #334155;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }}
 
     .stTabs [aria-selected="true"] {{
-        background: linear-gradient({gradient});
+        background-color: #3b82f6 !important;
         color: white !important;
-        border: none;
+        border: 1px solid #3b82f6 !important;
     }}
 
-    /* Download Button */
+    /* Download Button - Circle Health accent */
     .stDownloadButton button {{
-        background: linear-gradient({gradient});
-        color: white;
+        background-color: #fcc038 !important;
+        color: #0f172a !important;
         border: none;
-        padding: 0.75rem 2rem;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba({colors['primary']}, 0.3);
+        padding: 0.85rem 1.75rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(252, 192, 56, 0.3);
     }}
 
     .stDownloadButton button:hover {{
-        transform: scale(1.05);
-        box-shadow: 0 8px 25px rgba({colors['secondary']}, 0.4);
+        background-color: #f5b800 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(252, 192, 56, 0.4);
     }}
 
-    /* Info boxes */
+    /* Info boxes - Light Theme */
     .stAlert {{
-        background-color: rgba(30, 41, 59, 0.8) !important;
-        color: #e2e8f0 !important;
-        border: 1px solid #334155 !important;
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }}
 
-    /* DataFrames */
+    /* DataFrames - Light Theme */
     .stDataFrame {{
-        background-color: #1e293b !important;
+        background-color: white !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
     }}
 
-    /* Success/Error Messages */
+    .dataframe {{
+        background-color: white !important;
+        font-size: 1.05rem !important;
+    }}
+
+    .dataframe thead th {{
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.15rem !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+    }}
+
+    .dataframe tbody td {{
+        color: #0f172a !important;
+        font-weight: 600 !important;
+        font-size: 1.05rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }}
+
+    .dataframe tbody tr:hover td {{
+        background-color: #f8fafc !important;
+    }}
+
+    /* Glide DataEditor (Streamlit DataFrame) - Force Light Background */
+    .dvn-scroller {{
+        background-color: white !important;
+        color: #0f172a !important;
+    }}
+
+    .dvn-scroll-inner {{
+        background-color: white !important;
+        color: #0f172a !important;
+    }}
+
+    .dvn-underlay {{
+        background-color: white !important;
+    }}
+
+    .dvn-stack {{
+        background-color: white !important;
+    }}
+
+    .dvn-stack > div {{
+        background-color: white !important;
+    }}
+
+    /* All canvas elements in dataframes */
+    .stDataFrame canvas {{
+        background-color: white !important;
+    }}
+
+    /* Glide Data Editor specific */
+    div[class*="glide"] {{
+        background-color: white !important;
+        color: #0f172a !important;
+    }}
+
+    .stDataFrameGlideDataEditor {{
+        background-color: white !important;
+        color: #0f172a !important;
+    }}
+
+    /* DataFrame cell text visibility */
+    .stDataFrame * {{
+        color: #0f172a !important;
+    }}
+
+    /* DataFrame wrapper */
+    [data-testid="stDataFrame"] > div {{
+        background-color: white !important;
+    }}
+
+    /* Force all dataframe content to be visible */
+    .stDataFrame div {{
+        color: #0f172a !important;
+    }}
+
+    .stDataFrame span {{
+        color: #0f172a !important;
+    }}
+
+    .stDataFrame p {{
+        color: #0f172a !important;
+    }}
+
+    /* Force dataframe to render in light mode */
+    [data-testid="stDataFrame"] {{
+        color-scheme: light !important;
+    }}
+
+    .stDataFrame {{
+        color-scheme: light !important;
+    }}
+
+    /* Override any dark theme detection */
+    @media (prefers-color-scheme: dark) {{
+        [data-testid="stDataFrame"] {{
+            color-scheme: light !important;
+        }}
+
+        .stDataFrame {{
+            color-scheme: light !important;
+        }}
+    }}
+
+    /* Success/Error Messages - Light Theme */
     .stSuccess {{
-        background-color: rgba(16, 185, 129, 0.1) !important;
-        color: #10b981 !important;
-        border: 1px solid #10b981 !important;
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        border: 1px solid #86efac !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }}
 
     .stError {{
-        background-color: rgba(239, 68, 68, 0.1) !important;
-        color: #ef4444 !important;
-        border: 1px solid #ef4444 !important;
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #fca5a5 !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }}
 
-    /* Dividers */
+    .stWarning {{
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fcd34d !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }}
+
+    .stInfo {{
+        background-color: #dbeafe !important;
+        color: #1e40af !important;
+        border: 1px solid #93c5fd !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Dividers - Light Theme */
     hr {{
-        border-color: #334155 !important;
+        border-color: #cbd5e1 !important;
     }}
 
-    /* Headers */
+    /* Headers - Light Theme */
     h1, h2, h3, h4, h5, h6 {{
-        color: #FFFFFF !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        color: #0f172a !important;
+        text-shadow: none;
+        font-weight: 700 !important;
+    }}
+
+    h3 {{
+        font-size: 2rem !important;
+    }}
+
+    h2 {{
+        font-size: 2.25rem !important;
     }}
 
     /* Strong text visibility */
     strong, b {{
-        color: #FFFFFF !important;
+        color: #0f172a !important;
         font-weight: 700 !important;
+    }}
+
+    /* Paragraph text */
+    p {{
+        color: #1e293b !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Buttons - Circle Health style */
+    .stButton>button {{
+        background-color: #3b82f6 !important;
+        color: white !important;
+        font-size: 1.1rem !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        padding: 0.85rem 1.75rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+    }}
+
+    .stButton>button:hover {{
+        background-color: #2563eb !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+        transform: translateY(-1px);
+    }}
+
+    /* Chart containers */
+    [data-testid="stPlotlyChart"] > div {{
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 1rem !important;
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    }}
+
+    /* Metric cards */
+    [data-testid="stMetric"] {{
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        padding: 1rem !important;
+        background: white !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
     }}
 
     /* Plotly Charts Background */
     .js-plotly-plot .plotly .main-svg {{
+        background-color: transparent !important;
+    }}
+
+    /* Fix any remaining dark backgrounds */
+    div[data-testid="stVerticalBlock"] {{
+        background-color: transparent !important;
+    }}
+
+    div[data-testid="stHorizontalBlock"] {{
+        background-color: transparent !important;
+    }}
+
+    /* Container backgrounds */
+    .element-container {{
+        background-color: transparent !important;
+    }}
+
+    /* Block containers */
+    .block-container {{
+        background: transparent !important;
+    }}
+
+    /* Ensure all sections are light */
+    section[data-testid="stSidebar"] > div {{
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    }}
+
+    /* Fix markdown containers */
+    [data-testid="stMarkdownContainer"] {{
+        background-color: transparent !important;
+    }}
+
+    /* Fix column containers */
+    [data-testid="column"] > div {{
+        background-color: transparent !important;
+    }}
+
+    /* Tabs content area */
+    [data-testid="stTabContent"] {{
+        background-color: transparent !important;
+    }}
+
+    /* Remove any dark overlays */
+    .stApp > header {{
+        background: transparent !important;
+    }}
+
+    /* Ensure streamlit containers are transparent */
+    .stMarkdown {{
         background-color: transparent !important;
     }}
     </style>
@@ -223,27 +707,41 @@ def get_dashboard_css():
     """
     Generate CSS for the main dashboard (overview mode)
     Consolidated CSS to avoid duplication in app.py
+    Circle Health inspired color palette
 
     Returns:
         CSS string for dashboard styling
     """
     return """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&display=swap');
 
-    /* Main Container - Dark theme */
+    /* Force light mode globally */
+    :root {
+        color-scheme: light !important;
+    }
+
+    html {
+        color-scheme: light !important;
+    }
+
+    body {
+        color-scheme: light !important;
+    }
+
+    /* Main Container - Circle Health inspired */
     .main {
-        font-family: 'Poppins', sans-serif;
-        background: #0F172A;
-        color: #E2E8F0;
+        font-family: 'Nunito', sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f0f9ff 100%);
+        color: #1e293b;
     }
 
     .stApp {
-        background: #0F172A !important;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #f0f9ff 100%) !important;
     }
 
     .main .block-container {
-        background: #0F172A !important;
+        background: transparent !important;
         padding-top: 1rem !important;
         max-width: 100% !important;
     }
@@ -259,170 +757,257 @@ def get_dashboard_css():
         background-color: transparent !important;
     }
 
-    /* Header Styling - Dark theme with bright accent */
+    /* Header Styling - Circle Health inspired */
     .main-header {
-        font-size: 3.2rem;
-        font-weight: 900;
-        color: #FFFFFF;
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #0f172a;
         text-align: left;
         margin-bottom: 0.3rem;
         margin-top: 0;
         letter-spacing: -0.5px;
-        text-shadow: 0 3px 10px rgba(255,255,255,0.3), 0 0 25px rgba(6, 182, 212, 0.5);
+        text-shadow: none;
         line-height: 1.1;
     }
 
     .sub-header {
         text-align: left;
-        color: #FFFFFF;
-        font-size: 1.5rem;
+        color: #1e293b;
+        font-size: 1.65rem;
         margin-bottom: 0.5rem;
         margin-top: 0;
-        font-weight: 700;
-        text-shadow: 0 2px 6px rgba(255,255,255,0.2);
+        font-weight: 600;
+        text-shadow: none;
     }
 
-    /* Metric Cards - Dark theme */
+    /* Metric Cards - Circle Health inspired */
     [data-testid="stMetricValue"] {
-        font-size: 2.8rem !important;
-        font-weight: 900 !important;
-        color: #FFFFFF !important;
-        text-shadow: 0 2px 8px rgba(255,255,255,0.3) !important;
+        font-size: 3.2rem !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        text-shadow: none !important;
     }
 
     [data-testid="stMetricLabel"] {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
-        color: #F1F5F9 !important;
+        color: #334155 !important;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.5px;
     }
 
     [data-testid="stMetricDelta"] {
-        font-size: 1.15rem !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
-        color: #FDE047 !important;
-        text-shadow: 0 1px 4px rgba(253, 224, 71, 0.4) !important;
+        color: #ea580c !important;
+        text-shadow: none !important;
     }
 
-    /* Card Style - Dark theme */
+    /* Card Style - Light theme with rounded corners */
     .css-1r6slb0 {
-        background: #1E293B;
-        border-radius: 12px;
+        background: white;
+        border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        border: 1px solid #334155;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border: none;
     }
 
-    /* Section Headers - Dark theme */
+    /* Section Headers - Light theme */
     h3 {
-        color: #FFFFFF !important;
-        font-weight: 800 !important;
-        font-size: 1.75rem !important;
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-        letter-spacing: -0.3px;
-        text-shadow: 0 2px 6px rgba(255,255,255,0.2);
-    }
-
-    h2 {
-        color: #FFFFFF !important;
-        font-weight: 800 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
         font-size: 2rem !important;
         margin-top: 0.3rem !important;
         margin-bottom: 0.3rem !important;
-        text-shadow: 0 2px 8px rgba(255,255,255,0.25);
+        letter-spacing: -0.3px;
+        text-shadow: none;
+    }
+
+    h2 {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 2.25rem !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+        text-shadow: none;
     }
 
     h4 {
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        font-size: 1.4rem !important;
-        text-shadow: 0 1px 4px rgba(255,255,255,0.15);
+        color: #1e293b !important;
+        font-weight: 600 !important;
+        font-size: 1.6rem !important;
+        text-shadow: none;
     }
 
     /* Paragraph text visibility */
     p {
-        color: #FFFFFF !important;
-        font-size: 1.15rem !important;
-        font-weight: 500 !important;
+        color: #1e293b !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
     }
 
-    /* Dataframe styling - Dark theme */
+    /* Dataframe styling - Light theme */
     .dataframe {
-        font-size: 1.25rem !important;
+        font-size: 1.05rem !important;
         border: none !important;
-        background-color: #1E293B !important;
+        background-color: white !important;
     }
 
     .dataframe thead th {
-        background-color: #334155 !important;
-        color: #FFFFFF !important;
-        font-weight: 800 !important;
-        font-size: 1.35rem !important;
-        border-bottom: 3px solid #475569 !important;
-        padding: 18px !important;
-        text-shadow: 0 1px 3px rgba(255,255,255,0.15);
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.15rem !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        padding: 16px !important;
+        text-shadow: none;
     }
 
     .dataframe tbody td {
-        color: #FFFFFF !important;
+        color: #0f172a !important;
         font-weight: 600 !important;
-        font-size: 1.2rem !important;
-        border-bottom: 1px solid #334155 !important;
-        padding: 16px !important;
-        background-color: #1E293B !important;
+        font-size: 1.05rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 14px !important;
+        background-color: white !important;
     }
 
     .dataframe tbody tr:hover td {
-        background-color: #334155 !important;
+        background-color: #f8fafc !important;
     }
 
     [data-testid="stDataFrame"] {
-        background-color: #1E293B !important;
-        border: 1px solid #475569 !important;
-        border-radius: 8px !important;
+        background-color: white !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
     }
 
-    /* Input elements - Dark theme */
+    /* Glide DataEditor (Streamlit DataFrame) - Force Light Background */
+    .dvn-scroller {
+        background-color: white !important;
+        color: #0f172a !important;
+    }
+
+    .dvn-scroll-inner {
+        background-color: white !important;
+        color: #0f172a !important;
+    }
+
+    .dvn-underlay {
+        background-color: white !important;
+    }
+
+    .dvn-stack {
+        background-color: white !important;
+    }
+
+    .dvn-stack > div {
+        background-color: white !important;
+    }
+
+    /* All canvas elements in dataframes */
+    .stDataFrame canvas {
+        background-color: white !important;
+    }
+
+    /* Glide Data Editor specific */
+    div[class*="glide"] {
+        background-color: white !important;
+        color: #0f172a !important;
+    }
+
+    .stDataFrameGlideDataEditor {
+        background-color: white !important;
+        color: #0f172a !important;
+    }
+
+    /* DataFrame cell text visibility */
+    .stDataFrame * {
+        color: #0f172a !important;
+    }
+
+    /* DataFrame wrapper */
+    [data-testid="stDataFrame"] > div {
+        background-color: white !important;
+    }
+
+    /* Force all dataframe content to be visible */
+    .stDataFrame div {
+        color: #0f172a !important;
+    }
+
+    .stDataFrame span {
+        color: #0f172a !important;
+    }
+
+    .stDataFrame p {
+        color: #0f172a !important;
+    }
+
+    /* Force dataframe to render in light mode */
+    [data-testid="stDataFrame"] {
+        color-scheme: light !important;
+    }
+
+    .stDataFrame {
+        color-scheme: light !important;
+    }
+
+    /* Override any dark theme detection */
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stDataFrame"] {
+            color-scheme: light !important;
+        }
+
+        .stDataFrame {
+            color-scheme: light !important;
+        }
+    }
+
+    /* Input elements - Light theme */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select,
     .stMultiSelect > div > div,
     .stDateInput > div > div > input {
-        background-color: #334155 !important;
-        color: #FFFFFF !important;
-        font-size: 1.15rem !important;
+        background-color: white !important;
+        color: #0f172a !important;
+        font-size: 1.05rem !important;
         font-weight: 600 !important;
-        border: 1px solid #475569 !important;
-    }
-
-    /* Spinner text - Dark theme */
-    .stSpinner > div {
-        color: #E2E8F0 !important;
-    }
-
-    /* Buttons - Professional blue theme */
-    .stButton>button {
-        background-color: #2367AE !important;
-        color: white !important;
-        font-size: 1.25rem !important;
-        border: none !important;
+        border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
+    }
+
+    /* Spinner text - Light theme */
+    .stSpinner > div {
+        color: #1e293b !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Buttons - Circle Health inspired */
+    .stButton>button {
+        background-color: #3b82f6 !important;
+        color: white !important;
+        font-size: 1.1rem !important;
+        border: none !important;
+        border-radius: 12px !important;
         font-weight: 700 !important;
-        padding: 0.85rem 2rem !important;
+        padding: 0.85rem 1.75rem !important;
         transition: all 0.2s ease !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        text-shadow: none !important;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
     }
 
     .stButton>button:hover {
-        background-color: #1B5391 !important;
-        box-shadow: 0 4px 12px rgba(35,103,174,0.4) !important;
+        background-color: #2563eb !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+        transform: translateY(-1px);
     }
 
-    /* Sidebar styling - Dark theme */
+    /* Sidebar styling - Light theme */
     [data-testid="stSidebar"] {
-        background-color: #1E293B !important;
-        border-right: 2px solid #475569 !important;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+        border-right: 1px solid #cbd5e1 !important;
         padding-top: 1rem !important;
     }
 
@@ -431,29 +1016,238 @@ def get_dashboard_css():
     }
 
     [data-testid="stSidebar"] * {
-        color: #F1F5F9 !important;
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
     }
 
     [data-testid="stSidebar"] h3 {
-        color: #FFFFFF !important;
+        color: #0f172a !important;
         font-weight: 800 !important;
         margin-top: 0.5rem !important;
         margin-bottom: 0.5rem !important;
-        font-size: 1.3rem !important;
-        text-shadow: 0 1px 4px rgba(255,255,255,0.15);
+        font-size: 1.6rem !important;
+        text-shadow: none;
     }
 
-    /* Expander styling - Dark theme */
-    .streamlit-expanderHeader {
-        background-color: #334155 !important;
-        border-radius: 6px !important;
+    [data-testid="stSidebar"] p {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] label {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] div {
+        color: #0f172a !important;
+    }
+
+    [data-testid="stSidebar"] span {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+
+    /* File Uploader in Sidebar - Force Visibility */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] {
+        background-color: white !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] * {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] label {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section {
+        background-color: #f8fafc !important;
+        border: 2px dashed #3b82f6 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] small {
+        color: #0f172a !important;
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button {
+        background-color: #3b82f6 !important;
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] p {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] div {
+        color: #0f172a !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] span {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+
+    /* Expander in Sidebar */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {
+        background-color: white !important;
+        color: #0f172a !important;
         font-weight: 700 !important;
         font-size: 1.2rem !important;
-        color: #FFFFFF !important;
-        border: 1px solid #475569 !important;
-        padding: 0.7rem 1.2rem !important;
+    }
+
+    /* Fix dark header in expander */
+    [data-testid="stSidebar"] [data-testid="stExpander"] > summary {
+        background-color: white !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] > summary > div {
+        background-color: white !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] summary {
+        background-color: white !important;
+    }
+
+    /* Remove all dark backgrounds from sidebar */
+    [data-testid="stSidebar"] div[style*="background"] {
+        background: white !important;
+    }
+
+    [data-testid="stSidebar"] div[class*="st-emotion"] {
+        background-color: transparent !important;
+    }
+
+    /* Target specific emotion cache classes that might have dark backgrounds */
+    [data-testid="stSidebar"] .st-emotion-cache-11fa8fd {
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .st-emotion-cache-11fa8fd * {
+        color: #0f172a !important;
+    }
+
+    /* Expander text visibility - Force all elements */
+    [data-testid="stSidebar"] [data-testid="stExpander"] {
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] * {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] p {
+        color: #0f172a !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {
+        color: #0f172a !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] * {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* Force expander header text visibility - all states */
+    [data-testid="stSidebar"] .streamlit-expanderHeader {
+        background-color: white !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader * {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader p {
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover {
+        background-color: #f1f5f9 !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover * {
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:hover p {
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:active {
+        background-color: #e2e8f0 !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:active * {
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:focus {
+        background-color: white !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderHeader:focus * {
+        color: #0f172a !important;
+        background-color: transparent !important;
+    }
+
+    /* Expander content area */
+    [data-testid="stSidebar"] .streamlit-expanderContent {
+        background-color: #f8fafc !important;
+    }
+
+    [data-testid="stSidebar"] .streamlit-expanderContent * {
+        color: #0f172a !important;
+    }
+
+    /* Expander styling - Light theme */
+    .streamlit-expanderHeader {
+        background-color: white !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        color: #0f172a !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 0.7rem 1rem !important;
         margin-bottom: 0.5rem !important;
-        text-shadow: 0 1px 3px rgba(255,255,255,0.1);
+        text-shadow: none;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
     [data-testid="stExpander"] {
@@ -462,92 +1256,108 @@ def get_dashboard_css():
 
     .streamlit-expanderContent {
         padding: 0.75rem !important;
+        background-color: #f8fafc !important;
+        border-radius: 0 0 10px 10px;
     }
 
-    /* File uploader styling - Dark theme */
+    /* File uploader styling - Light theme */
     [data-testid="stFileUploader"] {
         background-color: transparent !important;
         margin-bottom: 0.5rem !important;
     }
 
     [data-testid="stFileUploader"] section {
-        background-color: #334155 !important;
-        border: 2px dashed #64748B !important;
-        border-radius: 8px !important;
-        padding: 1.25rem !important;
+        background-color: white !important;
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
     }
 
     [data-testid="stFileUploader"] section:hover {
-        background-color: #475569 !important;
-        border-color: #0EA5E9 !important;
+        background-color: #f8fafc !important;
+        border-color: #3b82f6 !important;
     }
 
     [data-testid="stFileUploader"] label {
-        color: #FFFFFF !important;
+        color: #0f172a !important;
         font-weight: 700 !important;
-        font-size: 1.2rem !important;
+        font-size: 1rem !important;
     }
 
     [data-testid="stFileUploader"] small {
-        color: #F1F5F9 !important;
-        font-size: 1.05rem !important;
-        font-weight: 500 !important;
+        color: #334155 !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
     }
 
     [data-testid="stFileUploader"] button {
-        background-color: #475569 !important;
-        color: #E2E8F0 !important;
-        border: 1px solid #64748B !important;
-        font-weight: 500 !important;
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        font-size: 1rem !important;
     }
 
     [data-testid="stFileUploader"] button:hover {
-        background-color: #334155 !important;
-        border-color: #0EA5E9 !important;
+        background-color: #e2e8f0 !important;
+        border-color: #3b82f6 !important;
     }
 
     [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] {
-        color: #94A3B8 !important;
+        color: #334155 !important;
     }
 
-    /* Alert messages */
+    /* Alert messages - Light theme */
     [data-testid="stSidebar"] [data-testid="stAlert"] {
-        background-color: #334155 !important;
-        color: #E2E8F0 !important;
-        border: 1px solid #475569 !important;
+        background-color: #f1f5f9 !important;
+        color: #1e293b !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }
 
     [data-testid="stSidebar"] .stSuccess {
-        background-color: #134E4A !important;
-        color: #6EE7B7 !important;
-        border: 1px solid #10B981 !important;
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        border: 1px solid #86efac !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }
 
     [data-testid="stSidebar"] .stInfo {
-        background-color: #0C4A6E !important;
-        color: #7DD3FC !important;
-        border: 1px solid #0EA5E9 !important;
+        background-color: #dbeafe !important;
+        color: #1e40af !important;
+        border: 1px solid #93c5fd !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }
 
     [data-testid="stSidebar"] .stError {
-        background-color: #7F1D1D !important;
-        color: #FCA5A5 !important;
-        border: 1px solid #EF4444 !important;
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #fca5a5 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
     }
 
-    /* Download buttons - Professional blue */
+    /* Download buttons - Circle Health accent */
     .stDownloadButton>button {
-        background-color: #2367AE !important;
-        color: white !important;
-        font-size: 1.2rem !important;
+        background-color: #fcc038 !important;
+        color: #0f172a !important;
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
-        padding: 0.85rem 2rem !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+        padding: 0.85rem 1.75rem !important;
+        text-shadow: none !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(252, 192, 56, 0.3) !important;
     }
 
     .stDownloadButton>button:hover {
-        background-color: #1B5391 !important;
-        box-shadow: 0 4px 12px rgba(35,103,174,0.4) !important;
+        background-color: #f5b800 !important;
+        box-shadow: 0 4px 12px rgba(252, 192, 56, 0.4) !important;
+        transform: translateY(-1px);
     }
 
     /* Reduce spacing throughout */
@@ -583,32 +1393,32 @@ def get_dashboard_css():
         margin-bottom: 0.5rem !important;
     }
 
-    /* Chart Borders and Divisions */
+    /* Chart Borders and Divisions - Light theme with soft shadows */
     [data-testid="stPlotlyChart"] > div {
-        border: 3px solid #475569 !important;
-        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
         padding: 1rem !important;
-        background: rgba(30, 41, 59, 0.3) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        background: white !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
         margin-bottom: 1rem !important;
         height: 100% !important;
     }
 
     /* Section Dividers */
     .chart-section-divider {
-        border-top: 4px solid #64748B !important;
-        border-bottom: 2px solid #475569 !important;
+        border-top: 1px solid #cbd5e1 !important;
+        border-bottom: none !important;
         margin: 1.5rem 0 !important;
         padding: 0.5rem 0 !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: none !important;
     }
 
     /* Horizontal rules between sections */
     hr {
-        border-color: #64748B !important;
-        border-width: 2px !important;
+        border-color: #cbd5e1 !important;
+        border-width: 1px !important;
         margin: 1.5rem 0 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: none !important;
     }
 
     /* Column alignment - equal height columns */
@@ -625,71 +1435,78 @@ def get_dashboard_css():
         flex-direction: column !important;
     }
 
-    /* Metric card borders */
+    /* Metric card borders - Light theme with soft rounded corners */
     [data-testid="stMetric"] {
-        border: 2px solid #475569 !important;
-        border-radius: 10px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
         padding: 1rem !important;
-        background: rgba(30, 41, 59, 0.2) !important;
+        background: white !important;
         margin-bottom: 0.5rem !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
     }
 
     /* Table borders */
     [data-testid="stDataFrame"] {
-        border: 3px solid #64748B !important;
-        border-radius: 10px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
         padding: 0.5rem !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
         margin-bottom: 1rem !important;
-        background: rgba(30, 41, 59, 0.3) !important;
+        background: white !important;
     }
 
-    /* Main content alerts - Dark theme */
+    /* Main content alerts - Light theme */
     .stAlert {
-        background-color: #334155 !important;
-        color: #E2E8F0 !important;
-        border: 1px solid #475569 !important;
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
     }
 
     .stSuccess {
-        background-color: #134E4A !important;
-        color: #6EE7B7 !important;
-        border: 1px solid #10B981 !important;
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        border: 1px solid #86efac !important;
+        border-radius: 12px !important;
     }
 
     .stInfo {
-        background-color: #0C4A6E !important;
-        color: #7DD3FC !important;
-        border: 1px solid #0EA5E9 !important;
+        background-color: #dbeafe !important;
+        color: #1e40af !important;
+        border: 1px solid #93c5fd !important;
+        border-radius: 12px !important;
     }
 
     .stError {
-        background-color: #7F1D1D !important;
-        color: #FCA5A5 !important;
-        border: 1px solid #EF4444 !important;
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border: 1px solid #fca5a5 !important;
+        border-radius: 12px !important;
     }
 
     .stWarning {
-        background-color: #78350F !important;
-        color: #FCD34D !important;
-        border: 1px solid #F59E0B !important;
+        background-color: #fef3c7 !important;
+        color: #92400e !important;
+        border: 1px solid #fcd34d !important;
+        border-radius: 12px !important;
     }
 
-    /* Tabs styling - Dark theme */
+    /* Tabs styling - Light theme */
     .stTabs [data-baseweb="tab-list"] {
         background-color: transparent !important;
     }
 
     .stTabs [data-baseweb="tab"] {
-        background-color: #334155 !important;
-        color: #94A3B8 !important;
-        border: 1px solid #475569 !important;
+        background-color: white !important;
+        color: #64748b !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px 10px 0 0 !important;
     }
 
     .stTabs [aria-selected="true"] {
-        background-color: #2367AE !important;
+        background-color: #3b82f6 !important;
         color: white !important;
-        border: 1px solid #2367AE !important;
+        border: 1px solid #3b82f6 !important;
     }
 
     /* Mobile Responsive Styles */

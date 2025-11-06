@@ -32,6 +32,10 @@ st.set_page_config(
    initial_sidebar_state="expanded"
 )
 
+# Force Streamlit to use light theme for dataframes
+import os
+os.environ['STREAMLIT_THEME_BASE'] = 'light'
+
 
 # -------------------------
 # Initialize Session State
@@ -180,24 +184,19 @@ with st.sidebar:
 
 # --- THEME DETECTION HELPER ---
 def get_plotly_theme():
-   """Detect Streamlit theme (dark/light) and return corresponding Plotly settings"""
-   theme = st.get_option("theme.base") or "dark"
-
-
-   if theme == "light":
-       return {
-           "template": "plotly_white",
-           "bg_color": "rgba(255,255,255,1)",
-           "font_color": "#0F172A",  # dark navy text
-           "grid_color": "#E2E8F0"
-       }
-   else:
-       return {
-           "template": "plotly_dark",
-           "bg_color": "rgba(15,23,42,0)",
-           "font_color": "#E2E8F0",  # light text
-           "grid_color": "#334155"
-       }
+   """Circle Health inspired Plotly theme with light colors"""
+   # Always use light theme for Circle Health style
+   return {
+       "template": "plotly_white",
+       "bg_color": "rgba(255,255,255,1)",
+       "font_color": "#0f172a",  # dark navy text
+       "grid_color": "#e2e8f0",  # light grid
+       "primary_color": "#3b82f6",  # soft blue
+       "secondary_color": "#0ea5e9",  # lighter blue
+       "accent_color": "#fcc038",  # yellow/orange accent
+       "success_color": "#10b981",  # green
+       "chart_colors": ["#3b82f6", "#0ea5e9", "#fcc038", "#8b5cf6", "#ec4899", "#10b981"]
+   }
 
 
 # --- Initialize global theme configuration ---
@@ -321,8 +320,8 @@ if st.session_state.view_mode == 'overview':
     # Show loaded banks count
     if st.session_state.bank_data:
         st.markdown(f"""
-            <div style='background: #1E293B; padding: 0.5rem 0.75rem; border-radius: 6px; margin: 0.25rem 0; border: 1px solid #475569;'>
-                <p style='color: #CBD5E1; font-size: 0.85rem; margin: 0; text-align: center; font-weight: 600;'>
+            <div style='background: white; padding: 0.85rem 1.25rem; border-radius: 12px; margin: 0.5rem 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
+                <p style='color: #1e293b; font-size: 1.1rem; margin: 0; text-align: center; font-weight: 700; font-family: Nunito;'>
                     📊 Analyzing {len(st.session_state.bank_data)} Bank{'s' if len(st.session_state.bank_data) > 1 else ''}: {', '.join(st.session_state.bank_data.keys())}
                 </p>
             </div>
@@ -336,28 +335,28 @@ if st.session_state.view_mode == 'overview':
         with col2:
             # Welcome message
             st.markdown("""
-                <div style='text-align: center; padding: 1rem 0 0.5rem 0;'>
-                    <h2 style='color: #FFFFFF; font-weight: 800;
-    font-size: 2rem; margin-bottom: 0.5rem; text-shadow: 0 2px 6px rgba(0,0,0,0.4);'>
+                <div style='text-align: center; padding: 2rem 0 1rem 0;'>
+                    <h2 style='color: #0f172a; font-weight: 700; font-family: Nunito;
+    font-size: 2.8rem; margin-bottom: 0.75rem;'>
                         Welcome to Campaign Analytics
                     </h2>
-                    <p style='color: #E2E8F0;
-    font-size: 1.05rem; line-height: 1.5; font-weight: 500;'>
+                    <p style='color: #1e293b; font-family: Nunito;
+    font-size: 1.25rem; line-height: 1.5; font-weight: 600;'>
                         Upload MIS files in the sidebar to begin analysis
                     </p>
                 </div>
             """, unsafe_allow_html=True)
 
-            # Features section - using Streamlit native components
+            # Features section - Circle Health style
             st.markdown("""
-                <div style='background: #1E293B; border-radius: 8px; padding: 1.25rem; border: 1px solid #475569; margin-top: 0.75rem;'>
-                    <p style='color: #FFFFFF; font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.3);'>
+                <div style='background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #cbd5e1; margin-top: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);'>
+                    <p style='color: #0f172a; font-weight: 700; font-size: 1.35rem; margin-bottom: 1rem; text-align: center; font-family: Nunito;'>
                         Key Capabilities
                     </p>
                 </div>
             """, unsafe_allow_html=True)
 
-            # Feature list with minimal styling
+            # Feature list with Circle Health styling
             features = [
                 "Multi-Bank Consolidated View",
                 "Real-Time Performance Metrics",
@@ -368,11 +367,9 @@ if st.session_state.view_mode == 'overview':
 
             for feature in features:
                 st.markdown(f"""
-                    <div style='padding: 0.4rem 0;
-    color: #F1F5F9;'>
-                        <span style='color: #22D3EE;
-    margin-right: 0.5rem; font-weight: 700;'>●</span>
-                        <span style='font-size: 1rem; font-weight: 500;'>{feature}</span>
+                    <div style='padding: 0.5rem 0; color: #0f172a;'>
+                        <span style='color: #3b82f6; margin-right: 0.5rem; font-weight: 700; font-size: 1.3rem;'>●</span>
+                        <span style='font-size: 1.1rem; font-weight: 600; font-family: Nunito;'>{feature}</span>
                     </div>
                 """, unsafe_allow_html=True)
     else:
@@ -508,23 +505,36 @@ if st.session_state.view_mode == 'overview':
         # Bank-Wise Comparison Table
         # -------------------------
         st.markdown("### 🏦 Bank Performance Comparison")
-        st.dataframe(
-            bank_comparison.style.format({
-                'Applications': '{:,.0f}',
-                'IPA Approved': '{:,.0f}',
-                'Card Out': '{:,.0f}',
-                'Declined': '{:,.0f}',
-                'Total Cost (₹)': '₹{:,.2f}',
-                'Avg CPA (₹)': '₹{:.2f}',
-                'App→IPA %': '{:.1f}%',
-                'IPA→Card %': '{:.1f}%',
-                'Cost %': '{:.1f}%'
-            }).background_gradient(subset=['Applications'], cmap='Blues')
-            .background_gradient(subset=['Card Out'], cmap='Greens')
-            .background_gradient(subset=['Total Cost (₹)'], cmap='Reds'),
-            width='stretch',
-            height=250
-        )
+
+        # Format the styled dataframe and convert to HTML
+        styled_df = (bank_comparison.style.format({
+            'Applications': '{:,.0f}',
+            'IPA Approved': '{:,.0f}',
+            'Card Out': '{:,.0f}',
+            'Declined': '{:,.0f}',
+            'Total Cost (₹)': '₹{:,.2f}',
+            'Avg CPA (₹)': '₹{:.2f}',
+            'App→IPA %': '{:.1f}%',
+            'IPA→Card %': '{:.1f}%',
+            'Cost %': '{:.1f}%'
+        }).background_gradient(subset=['Applications'], cmap='Blues')
+          .background_gradient(subset=['Card Out'], cmap='Greens')
+          .background_gradient(subset=['Total Cost (₹)'], cmap='Reds')
+          .set_properties(**{
+            'color': '#0f172a',
+            'background-color': 'white',
+            'font-weight': '600',
+            'font-size': '1.05rem',
+            'font-family': 'Nunito',
+            'text-align': 'center'
+          }).set_table_styles([
+            {'selector': 'th', 'props': [('background-color', '#f1f5f9'), ('color', '#0f172a'), ('font-weight', '700'), ('font-size', '1.15rem'), ('border-bottom', '2px solid #cbd5e1'), ('text-align', 'center')]},
+            {'selector': 'td', 'props': [('color', '#0f172a'), ('border-bottom', '1px solid #e2e8f0'), ('text-align', 'center')]},
+            {'selector': 'tr:hover', 'props': [('background-color', '#f8fafc')]},
+            {'selector': '', 'props': [('border', '1px solid #e2e8f0'), ('border-radius', '12px'), ('margin', '0 auto')]}
+          ]))
+
+        st.markdown(styled_df.to_html(), unsafe_allow_html=True)
 
         # -------------------------
         # Visual Analytics
@@ -558,8 +568,8 @@ if st.session_state.view_mode == 'overview':
                 # Create stacked bar chart showing Source breakdown by Bank
                 fig_cardout_combined = go.Figure()
 
-                # Define colors for different banks
-                available_colors = ['#2367AE', '#00C389', '#FFCD56', '#00A3E0', '#7B68EE', '#FF6B9D']
+                # Define colors for different banks - Circle Health palette
+                available_colors = ['#3b82f6', '#0ea5e9', '#fcc038', '#8b5cf6', '#ec4899', '#10b981']
                 bank_colors = {bank: available_colors[i % len(available_colors)] for i, bank in enumerate(banks)}
 
                 # Add a trace for each bank
@@ -574,7 +584,7 @@ if st.session_state.view_mode == 'overview':
                         marker_color=bank_colors.get(bank, '#2367AE'),
                         text=[f"<b>{int(v):,}</b>" if v > 0 else "" for v in bank_source_data['Card Out']],
                         textposition='inside',
-                        textfont=dict(size=11, color='#FFFFFF', family='Poppins'),
+                        textfont=dict(size=13, color='#ffffff', family='Nunito'),
                         hovertemplate='<b>%{x}</b><br>Bank: ' + bank + '<br>Card Out: %{y:,}<extra></extra>'
                     ))
 
@@ -583,25 +593,25 @@ if st.session_state.view_mode == 'overview':
                 cardout_y_max = source_totals.max() * 1.15
 
                 fig_cardout_combined.update_layout(
-                    title=dict(text="<b>Card Out by Source (Bank Breakdown)</b>", font=dict(size=14, color='#FFFFFF')),
+                    title=dict(text="<b>Card Out by Source (Bank Breakdown)</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
                     height=380,
                     template=theme_cfg['template'],
                     paper_bgcolor=theme_cfg['bg_color'],
                     plot_bgcolor=theme_cfg['bg_color'],
                     barmode='stack',
                     xaxis=dict(
-                        title='Source',
+                        title=dict(text='Source', font=dict(size=13, color='#0f172a', family='Nunito')),
                         gridcolor=theme_cfg['grid_color'],
-                        tickfont=dict(size=9, color='#FFFFFF'),
+                        tickfont=dict(size=11, color='#1e293b', family='Nunito'),
                         tickangle=-45
                     ),
                     yaxis=dict(
-                        title='Card Out',
+                        title=dict(text='Card Out', font=dict(size=13, color='#0f172a', family='Nunito')),
                         gridcolor=theme_cfg['grid_color'],
-                        tickfont=dict(size=10, color='#FFFFFF'),
+                        tickfont=dict(size=11, color='#1e293b', family='Nunito'),
                         range=[0, cardout_y_max]
                     ),
-                    font=dict(color='#FFFFFF'),
+                    font=dict(color='#0f172a', family='Nunito', size=12),
                     margin=dict(t=50, b=80, l=50, r=20),
                     legend=dict(
                         orientation="h",
@@ -609,8 +619,8 @@ if st.session_state.view_mode == 'overview':
                         y=1.02,
                         xanchor="right",
                         x=1,
-                        font=dict(size=10, color='#FFFFFF'),
-                        title=dict(text="Bank", font=dict(size=10, color='#FFFFFF'))
+                        font=dict(size=11, color='#0f172a', family='Nunito'),
+                        title=dict(text="Bank", font=dict(size=12, color='#0f172a', family='Nunito'))
                     )
                 )
                 st.plotly_chart(fig_cardout_combined, use_container_width=True)
@@ -618,26 +628,26 @@ if st.session_state.view_mode == 'overview':
                 st.warning("Source column not found in campaign data. Please ensure the Source field is included in the identifiers sheet.")
 
         with viz_row1_col2:
-            # --- Cost Distribution by Bank (ORIGINAL - RESTORED) ---
+            # --- Cost Distribution by Bank - Circle Health colors ---
             fig_cost = px.pie(
                 bank_comparison.sort_values('Total Cost (₹)', ascending=False),
                 values='Total Cost (₹)',
                 names='Bank',
                 title="<b>Cost Distribution by Bank</b>",
                 hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Set2
+                color_discrete_sequence=theme_cfg['chart_colors']
             )
             fig_cost.update_traces(
                 textposition='outside',
                 textinfo='label+percent',
                 hovertemplate='<b>%{label}</b><br>Cost: ₹%{value:,.0f}<br>Share: %{percent}<extra></extra>',
-                textfont=dict(size=14, family='Poppins', color=theme_cfg['font_color']),
-                marker=dict(line=dict(color=theme_cfg['bg_color'], width=2))
+                textfont=dict(size=14, family='Nunito', color='#0f172a'),
+                marker=dict(line=dict(color='white', width=2))
             )
             fig_cost.update_layout(
                 height=380,
                 template=theme_cfg['template'],
-                title=dict(text="<b>Cost Distribution</b>", font=dict(size=14, color='#FFFFFF')),
+                title=dict(text="<b>Cost Distribution</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
                 xaxis=dict(gridcolor=theme_cfg['grid_color']),
@@ -649,12 +659,9 @@ if st.session_state.view_mode == 'overview':
                     y=1,
                     xanchor="left",
                     x=1.02,
-                    font=dict(size=10, color='#FFFFFF')
+                    font=dict(size=11, color='#0f172a', family='Nunito')
                 ),
                 margin=dict(t=50, b=30, l=30, r=120)
-            )
-            fig_cost.update_traces(
-                textfont=dict(size=16, family='Poppins', color='#FFFFFF')
             )
             st.plotly_chart(fig_cost, use_container_width=True)
 
@@ -683,12 +690,12 @@ if st.session_state.view_mode == 'overview':
                 barmode='group',
                 text='Count',
                 title="<b>Conversion Funnel by Bank</b>",
-                color_discrete_sequence=['#2367AE', '#00A3E0', '#FFCD56']
+                color_discrete_sequence=['#3b82f6', '#0ea5e9', '#fcc038']
             )
             fig_funnel.update_traces(
                 texttemplate='<b>%{text:,}</b>',
                 textposition='outside',
-                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
+                textfont=dict(size=15, color='#0f172a', family='Nunito')
             )
             # Calculate max value for funnel and add padding
             funnel_max = funnel_data['Count'].max()
@@ -697,19 +704,19 @@ if st.session_state.view_mode == 'overview':
             fig_funnel.update_layout(
                 height=380,
                 template=theme_cfg['template'],
-                font=dict(family='Poppins', color='#FFFFFF', size=10),
-                title=dict(text="<b>Conversion Funnel</b>", font=dict(size=14, color='#FFFFFF')),
+                font=dict(family='Nunito', color='#0f172a', size=12),
+                title=dict(text="<b>Conversion Funnel</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
                 xaxis=dict(
-                    title='Bank',
+                    title=dict(text='Bank', font=dict(size=13, color='#0f172a', family='Nunito')),
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=10, color='#FFFFFF')
+                    tickfont=dict(size=11, color='#1e293b', family='Nunito')
                 ),
                 yaxis=dict(
-                    title='Count',
+                    title=dict(text='Count', font=dict(size=13, color='#0f172a', family='Nunito')),
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=10, color='#FFFFFF'),
+                    tickfont=dict(size=11, color='#1e293b', family='Nunito'),
                     range=[0, funnel_y_max]
                 ),
                 legend=dict(
@@ -718,7 +725,7 @@ if st.session_state.view_mode == 'overview':
                     y=1.02,
                     xanchor="right",
                     x=1,
-                    font=dict(size=10, color='#FFFFFF')
+                    font=dict(size=11, color='#0f172a', family='Nunito')
                 ),
                 margin=dict(t=50, b=30, l=50, r=20)
             )
@@ -736,29 +743,32 @@ if st.session_state.view_mode == 'overview':
                 x=bank_comparison['Bank'],
                 y=bank_comparison['App→Card %'],
                 name='App → Card Out %',
-                marker_color='#7B68EE',
+                marker_color='#8b5cf6',
                 text=[f"<b>{v:.1f}%</b>" for v in bank_comparison['App→Card %']],
                 textposition='outside',
-                textfont=dict(size=18, color='#FFFFFF', family='Poppins')
+                textfont=dict(size=15, color='#0f172a', family='Nunito')
             ))
             # Add padding for conversion rate numbers
             conv_max = bank_comparison['App→Card %'].max()
             conv_y_max = conv_max * 1.25
 
             fig_conversion.update_layout(
-                title=dict(text="<b>Conversion Rate</b>", font=dict(size=14, color='#FFFFFF')),
+                title=dict(text="<b>Conversion Rate</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
                 height=380,
                 template=theme_cfg['template'],
                 paper_bgcolor=theme_cfg['bg_color'],
                 plot_bgcolor=theme_cfg['bg_color'],
-                xaxis=dict(gridcolor=theme_cfg['grid_color'], tickfont=dict(size=10, color='#FFFFFF')),
+                xaxis=dict(
+                    gridcolor=theme_cfg['grid_color'],
+                    tickfont=dict(size=11, color='#1e293b', family='Nunito')
+                ),
                 yaxis=dict(
                     gridcolor=theme_cfg['grid_color'],
-                    tickfont=dict(size=10, color='#FFFFFF'),
+                    tickfont=dict(size=11, color='#1e293b', family='Nunito'),
                     range=[0, conv_y_max]
                 ),
                 showlegend=False,
-                font=dict(color='#FFFFFF'),
+                font=dict(color='#0f172a', family='Nunito', size=12),
                 margin=dict(t=50, b=30, l=50, r=20)
             )
             st.plotly_chart(fig_conversion, use_container_width=True)
@@ -913,25 +923,36 @@ elif st.session_state.view_mode == 'bank_detail':
         channel_analysis['IPA→Card (%)'] = (channel_analysis['Card Out'] / channel_analysis['IPA Approved'] * 100).round(1)
 
         # Display channel table
-        st.dataframe(
-            channel_analysis.style.format({
-                'Applications': '{:,.0f}',
-                'IPA Approved': '{:,.0f}',
-                'Card Out': '{:,.0f}',
-                'Declined': '{:,.0f}',
-                'Total cost (₹)': '₹{:,.2f}',
-                'Delivered': '{:,.0f}',
-                'Clicks': '{:,.0f}',
-                'CTR (%)': '{:.2f}%',
-                'Cost per App (₹)': '₹{:.2f}',
-                'App→IPA (%)': '{:.1f}%',
-                'IPA→Card (%)': '{:.1f}%'
-            }).background_gradient(subset=['Applications'], cmap='Blues')
-            .background_gradient(subset=['Card Out'], cmap='Greens')
-            .background_gradient(subset=['Total cost (₹)'], cmap='Reds', high=0.8) # Adjusted high value for better color range
-            .background_gradient(subset=['CTR (%)'], cmap='PiYG', low=0.2, high=0.8), # Added gradient for CTR
-            width='stretch'
-        )
+        styled_channel = (channel_analysis.style.format({
+            'Applications': '{:,.0f}',
+            'IPA Approved': '{:,.0f}',
+            'Card Out': '{:,.0f}',
+            'Declined': '{:,.0f}',
+            'Total cost (₹)': '₹{:,.2f}',
+            'Delivered': '{:,.0f}',
+            'Clicks': '{:,.0f}',
+            'CTR (%)': '{:.2f}%',
+            'Cost per App (₹)': '₹{:.2f}',
+            'App→IPA (%)': '{:.1f}%',
+            'IPA→Card (%)': '{:.1f}%'
+        }).background_gradient(subset=['Applications'], cmap='Blues')
+          .background_gradient(subset=['Card Out'], cmap='Greens')
+          .background_gradient(subset=['Total cost (₹)'], cmap='Reds', high=0.8)
+          .background_gradient(subset=['CTR (%)'], cmap='PiYG', low=0.2, high=0.8)
+          .set_properties(**{
+            'color': '#0f172a',
+            'background-color': 'white',
+            'font-weight': '600',
+            'font-size': '1.05rem',
+            'font-family': 'Nunito'
+          }).set_table_styles([
+            {'selector': 'th', 'props': [('background-color', '#f1f5f9'), ('color', '#0f172a'), ('font-weight', '700'), ('font-size', '1.15rem'), ('border-bottom', '2px solid #cbd5e1')]},
+            {'selector': 'td', 'props': [('color', '#0f172a'), ('border-bottom', '1px solid #e2e8f0')]},
+            {'selector': 'tr:hover', 'props': [('background-color', '#f8fafc')]},
+            {'selector': '', 'props': [('border', '1px solid #e2e8f0'), ('border-radius', '12px')]}
+          ]))
+
+        st.markdown(styled_channel.to_html(), unsafe_allow_html=True)
 
         # Visual Analytics - Channel Funnel
         st.markdown("### 📈 Channel-Wise Conversion Funnel")
@@ -955,7 +976,7 @@ elif st.session_state.view_mode == 'bank_detail':
             barmode='group',
             text='Count',
             title=f"<b>{selected_bank} Conversion Funnel by Channel</b>",
-            color_discrete_sequence=['#2367AE', '#00A3E0', '#FFCD56'] # Professional colors
+            color_discrete_sequence=['#3b82f6', '#0ea5e9', '#fcc038']
         )
 
         # Calculate max for channel funnel and add padding
@@ -965,22 +986,25 @@ elif st.session_state.view_mode == 'bank_detail':
         fig_channel_funnel.update_traces(
             texttemplate='<b>%{text:,}</b>',
             textposition='outside',
-            textfont=dict(size=16, color='#FFFFFF', family='Poppins')
+            textfont=dict(size=15, color='#0f172a', family='Nunito')
         )
         fig_channel_funnel.update_layout(
             height=300,
-            template='plotly_dark',
-            paper_bgcolor='rgba(30, 41, 59, 0.6)',
-            plot_bgcolor='rgba(30, 41, 59, 0.4)',
-            font=dict(color='#FFFFFF', family='Poppins'),
-            title=dict(font=dict(size=14, color='#FFFFFF')),
-            xaxis=dict(tickfont=dict(size=10, color='#FFFFFF'), gridcolor='#475569'),
+            template='plotly_white',
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            font=dict(color='#0f172a', family='Nunito', size=12),
+            title=dict(font=dict(size=16, color='#0f172a', family='Nunito')),
+            xaxis=dict(
+                tickfont=dict(size=11, color='#1e293b', family='Nunito'),
+                gridcolor='#e2e8f0'
+            ),
             yaxis=dict(
-                tickfont=dict(size=10, color='#FFFFFF'),
-                gridcolor='#475569',
+                tickfont=dict(size=11, color='#1e293b', family='Nunito'),
+                gridcolor='#e2e8f0',
                 range=[0, channel_y_max]
             ),
-            legend=dict(font=dict(size=10, color='#FFFFFF')),
+            legend=dict(font=dict(size=11, color='#0f172a', family='Nunito')),
             margin=dict(t=40, b=30, l=40, r=15)
         )
         st.plotly_chart(fig_channel_funnel, use_container_width=True)
@@ -1001,23 +1025,32 @@ elif st.session_state.view_mode == 'bank_detail':
         df_display = df_display.sort_values(by='Applications', ascending=False)
         
         # Display the table
-        st.dataframe(
-            df_display.style.format({
-                'Applications': '{:,.0f}',
-                'IPA Approved': '{:,.0f}',
-                'Card Out': '{:,.0f}',
-                'Declined': '{:,.0f}',
-                'Cost (₹)': '₹{:,.2f}',
-                'Delivered': '{:,.0f}',
-                'Clicks': '{:,.0f}',
-                'CTR (%)': '{:.2f}%',
-                'CPA (₹)': '₹{:.2f}',
-                'App→IPA %': '{:.1f}%',
-                'IPA→Card %': '{:.1f}%'
-            }),
-            width='stretch',
-            height=400
-        )
+        styled_campaigns = df_display.style.format({
+            'Applications': '{:,.0f}',
+            'IPA Approved': '{:,.0f}',
+            'Card Out': '{:,.0f}',
+            'Declined': '{:,.0f}',
+            'Cost (₹)': '₹{:,.2f}',
+            'Delivered': '{:,.0f}',
+            'Clicks': '{:,.0f}',
+            'CTR (%)': '{:.2f}%',
+            'CPA (₹)': '₹{:.2f}',
+            'App→IPA %': '{:.1f}%',
+            'IPA→Card %': '{:.1f}%'
+        }).set_properties(**{
+            'color': '#0f172a',
+            'background-color': 'white',
+            'font-weight': '600',
+            'font-size': '1.05rem',
+            'font-family': 'Nunito'
+        }).set_table_styles([
+            {'selector': 'th', 'props': [('background-color', '#f1f5f9'), ('color', '#0f172a'), ('font-weight', '700'), ('font-size', '1.15rem'), ('border-bottom', '2px solid #cbd5e1')]},
+            {'selector': 'td', 'props': [('color', '#0f172a'), ('border-bottom', '1px solid #e2e8f0')]},
+            {'selector': 'tr:hover', 'props': [('background-color', '#f8fafc')]},
+            {'selector': '', 'props': [('border', '1px solid #e2e8f0'), ('border-radius', '12px'), ('max-height', '400px'), ('overflow-y', 'auto')]}
+        ])
+
+        st.markdown(f'<div style="max-height: 400px; overflow-y: auto;">{styled_campaigns.to_html()}</div>', unsafe_allow_html=True)
 
         # Export options for detail view
         st.markdown("### 📥 Export Campaign Data")
@@ -1069,10 +1102,10 @@ elif st.session_state.view_mode == 'bank_detail':
         st.error(f"No data available for {selected_bank}")
 
 
-# Footer
+# Footer - Circle Health inspired
 st.markdown("""
-    <div style='text-align: center; padding: 1rem 0; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-top: 1px solid #475569; margin-top: 1.5rem;'>
-        <p style='color: #94A3B8; font-size: 0.75rem; font-weight: 500; margin: 0;'>
+    <div style='text-align: center; padding: 1rem 0; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); border-top: 1px solid #cbd5e1; margin-top: 1.5rem;'>
+        <p style='color: #334155; font-size: 1rem; font-weight: 600; margin: 0; font-family: Nunito;'>
             Powered by extrape advisor | Data last updated: {timestamp}
         </p>
     </div>
