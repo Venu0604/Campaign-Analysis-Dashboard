@@ -623,7 +623,7 @@ if st.session_state.view_mode == 'overview':
                         title=dict(text="Bank", font=dict(size=12, color='#0f172a', family='Nunito'))
                     )
                 )
-                st.plotly_chart(fig_cardout_combined, use_container_width=True)
+                st.plotly_chart(fig_cardout_combined, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
             else:
                 st.warning("Source column not found in campaign data. Please ensure the Source field is included in the identifiers sheet.")
 
@@ -663,7 +663,7 @@ if st.session_state.view_mode == 'overview':
                 ),
                 margin=dict(t=50, b=30, l=30, r=120)
             )
-            st.plotly_chart(fig_cost, use_container_width=True)
+            st.plotly_chart(fig_cost, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
 
         # Second Row - Conversion Funnel and Conversion Rate
         st.markdown("<br>", unsafe_allow_html=True)
@@ -729,7 +729,7 @@ if st.session_state.view_mode == 'overview':
                 ),
                 margin=dict(t=50, b=30, l=50, r=20)
             )
-            st.plotly_chart(fig_funnel, use_container_width=True)
+            st.plotly_chart(fig_funnel, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
 
         with viz_row2_col2:
             # Conversion Rate Comparison
@@ -771,7 +771,7 @@ if st.session_state.view_mode == 'overview':
                 font=dict(color='#0f172a', family='Nunito', size=12),
                 margin=dict(t=50, b=30, l=50, r=20)
             )
-            st.plotly_chart(fig_conversion, use_container_width=True)
+            st.plotly_chart(fig_conversion, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
 
         # -------------------------
         # Export Section
@@ -1007,7 +1007,7 @@ elif st.session_state.view_mode == 'bank_detail':
             legend=dict(font=dict(size=11, color='#0f172a', family='Nunito')),
             margin=dict(t=40, b=30, l=40, r=15)
         )
-        st.plotly_chart(fig_channel_funnel, use_container_width=True)
+        st.plotly_chart(fig_channel_funnel, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
 
         # Campaign List Table
         st.markdown("### 📑 All Campaigns")
