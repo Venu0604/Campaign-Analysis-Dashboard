@@ -1427,7 +1427,9 @@ def get_dashboard_css():
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
-        padding: 0.5rem !important;
+        padding: 0.2rem !important;
+        flex: 1 !important;
+        min-width: 0 !important;
     }
 
     /* Ensure equal height for side-by-side elements */
@@ -1435,6 +1437,13 @@ def get_dashboard_css():
         flex: 1 !important;
         display: flex !important;
         flex-direction: column !important;
+        height: 100% !important;
+    }
+
+    /* Equal width for metric columns */
+    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 0px !important;
+        min-width: 0 !important;
     }
 
     /* Metric card borders - Light theme with soft rounded corners - Optimized for Web */
@@ -1445,6 +1454,11 @@ def get_dashboard_css():
         background: white !important;
         margin-bottom: 0.3rem !important;
         box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+        min-height: 100px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        height: 100% !important;
     }
 
     /* Table borders - Optimized for Web */
