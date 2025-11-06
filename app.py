@@ -583,14 +583,14 @@ if st.session_state.view_mode == 'overview':
                         y=bank_source_data['Card Out'],
                         marker_color=bank_colors.get(bank, '#2367AE'),
                         text=[f"<b>{int(v):,}</b>" if v > 0 else "" for v in bank_source_data['Card Out']],
-                        textposition='inside',
-                        textfont=dict(size=13, color='#ffffff', family='Nunito'),
+                        textposition='outside',
+                        textfont=dict(size=14, color='#0f172a', family='Nunito', weight='bold'),
                         hovertemplate='<b>%{x}</b><br>Bank: ' + bank + '<br>Card Out: %{y:,}<extra></extra>'
                     ))
 
-                # Calculate max value
+                # Calculate max value with extra padding for outside text labels
                 source_totals = df_source_cardout.groupby('Source')['Card Out'].sum()
-                cardout_y_max = source_totals.max() * 1.15
+                cardout_y_max = source_totals.max() * 1.35
 
                 fig_cardout_combined.update_layout(
                     title=dict(text="<b>Card Out by Source (Bank Breakdown)</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
@@ -695,11 +695,11 @@ if st.session_state.view_mode == 'overview':
             fig_funnel.update_traces(
                 texttemplate='<b>%{text:,}</b>',
                 textposition='outside',
-                textfont=dict(size=15, color='#0f172a', family='Nunito')
+                textfont=dict(size=16, color='#0f172a', family='Nunito', weight='bold')
             )
-            # Calculate max value for funnel and add padding
+            # Calculate max value for funnel and add extra padding for outside text labels
             funnel_max = funnel_data['Count'].max()
-            funnel_y_max = funnel_max * 1.25
+            funnel_y_max = funnel_max * 1.35
 
             fig_funnel.update_layout(
                 height=380,
@@ -746,11 +746,11 @@ if st.session_state.view_mode == 'overview':
                 marker_color='#8b5cf6',
                 text=[f"<b>{v:.1f}%</b>" for v in bank_comparison['App→Card %']],
                 textposition='outside',
-                textfont=dict(size=15, color='#0f172a', family='Nunito')
+                textfont=dict(size=16, color='#0f172a', family='Nunito', weight='bold')
             ))
-            # Add padding for conversion rate numbers
+            # Add extra padding for conversion rate numbers and outside text labels
             conv_max = bank_comparison['App→Card %'].max()
-            conv_y_max = conv_max * 1.25
+            conv_y_max = conv_max * 1.35
 
             fig_conversion.update_layout(
                 title=dict(text="<b>Conversion Rate</b>", font=dict(size=16, color='#0f172a', family='Nunito')),
@@ -979,14 +979,14 @@ elif st.session_state.view_mode == 'bank_detail':
             color_discrete_sequence=['#3b82f6', '#0ea5e9', '#fcc038']
         )
 
-        # Calculate max for channel funnel and add padding
+        # Calculate max for channel funnel and add extra padding for outside text labels
         channel_funnel_max = funnel_data['Count'].max()
-        channel_y_max = channel_funnel_max * 1.25
+        channel_y_max = channel_funnel_max * 1.35
 
         fig_channel_funnel.update_traces(
             texttemplate='<b>%{text:,}</b>',
             textposition='outside',
-            textfont=dict(size=15, color='#0f172a', family='Nunito')
+            textfont=dict(size=16, color='#0f172a', family='Nunito', weight='bold')
         )
         fig_channel_funnel.update_layout(
             height=300,
