@@ -389,7 +389,7 @@ sheet_url = f"https://docs.google.com/spreadsheets/d/184yquIAWt0XyQEYhI3yv0djg9f
 try:
     df_identifiers = pd.read_csv(sheet_url)
     df_identifiers.columns = df_identifiers.columns.str.strip()
-    df_identifiers['Date'] = pd.to_datetime(df_identifiers['Date'], errors='coerce')
+    df_identifiers['Date'] = pd.to_datetime(df_identifiers['Date'],format='%d-%m-%Y', errors='coerce')
     st.sidebar.success(f"✅ Loaded {len(df_identifiers)} campaigns")
 except Exception as e:
     st.sidebar.error(f"❌ Error loading identifiers: {e}")

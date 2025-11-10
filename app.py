@@ -104,7 +104,7 @@ with st.sidebar:
                                    import warnings
                                    with warnings.catch_warnings():
                                        warnings.filterwarnings("ignore", message="Could not infer format")
-                                       df_identifiers['Date'] = pd.to_datetime(df_identifiers['Date'], format='%d/%m/%Y', errors='coerce')
+                                       df_identifiers['Date'] = pd.to_datetime(df_identifiers['Date'], format='%d-%m-%Y', errors='coerce')
 
                                    # Process data
                                    processor = CampaignDataProcessor(bank_config)
