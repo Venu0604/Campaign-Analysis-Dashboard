@@ -36,6 +36,7 @@ BANK_CONFIGS = {
         "card_out_status": ["APPROVED"],
         "declined_status": ["DECLINED"],
         "ipa_approved_status": ["APPROVED", "IPA APPROVED", "UNDERWRITER APPROVED", "RCU", "UW"],
+        "skip_mis_date_filter": True,  # Axis Bank processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     },
     "AU Bank": {
@@ -51,6 +52,7 @@ BANK_CONFIGS = {
             "LOGICAL DELETED", "BUREAU DECLINE CASE"
         ],
         "ipa_approved_status": ["APPROVED"],
+        "skip_mis_date_filter": True,  # AU Bank processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     },
     "RBL Bank": {
@@ -71,6 +73,7 @@ BANK_CONFIGS = {
             "EMAIL VERIFICATION PENDING", "CURING PENDING: MAKER", "TAT BREACHED QUEUE",
             "UPSELL", "WIP"
         ],  # In progress statuses
+        "skip_mis_date_filter": True,  # RBL Bank processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     },
     "HDFC Bank": {
@@ -83,6 +86,7 @@ BANK_CONFIGS = {
         "declined_status": ["IPA REJECT", "Decline", "DECLINE"],  # All declined - from FINAL_DECISION (12960+734+12=13706)
         "ipa_approved_status": ["APPROVE"],  # IPA approved - from IPA_STATUS column (6878 total)
         "inprogress_status": ["IPA APPROVED DROPOFF CASE", "Inprocess", "INPROCESS"],  # In progress (4962+577+1=5540)
+        "skip_mis_date_filter": True,  # HDFC Bank processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     },
     "IDFC Bank": {
@@ -103,19 +107,47 @@ BANK_CONFIGS = {
             "UNDERWRITING PENDING", "VERIFICATION PENDING", "EKYC INITIATED",
             "CURING INITIATED"
         ],  # All in-progress statuses
+        "skip_mis_date_filter": True,  # IDFC processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     },
     "Scapia": {
         "sheet_gid": "713580679",
-        "identifier_column": "FIRST_UTM_CAMPAIGN",  # Campaign identifier (not _screen)
-        "status_column": "CURRENT_STATUS",  # Use current_status for declined tracking
-        "ops_status_column": "CARD_ISSUED",  # Use card_issued for card out tracking
-        "ipa_column": "CURRENT_STATUS",  # Current status for IPA tracking
-        "note_column": "NOTES",  # Notes column for additional info
-        "card_out_status": ["ISSUED"],  # Card issued (357 records)
-        "declined_status": ["REJECTED"],  # Rejected applications from CURRENT_STATUS
-        "ipa_approved_status": ["COMPLETED", "IN_PROGRESS"],  # Consider both as IPA approved (2,851 records)
-        "inprogress_status": ["IN_PROGRESS"],  # In progress (2,516 records)
+        "identifier_column": "first_utm_campaign",  # Campaign identifier (normalized to lowercase)
+        "status_column": "current_status",  # current_status column (normalized to lowercase)
+        "ops_status_column": "card_issued",  # card_issued column for IPA logic (normalized to lowercase)
+        "card_out_status": ["COMPLETED"],  # Card out = COMPLETED in current_status
+        "declined_status": ["REJECTED"],  # Declined = REJECTED in current_status
+        "ipa_approved_status": ["IN_PROGRESS"],  # IPA = IN_PROGRESS status (checked with card_issued)
+        "ipa_card_issued_status": ["ISSUED"],  # IPA also requires card_issued = ISSUED
+        "skip_mis_date_filter": True,  # Scapia processes ALL MIS records regardless of identifier dates
+        **UNIFIED_COLOR_SCHEME
+    },
+    "KIWI Bank": {
+        "sheet_gid": "1085917805",
+        "identifier_column": "term",  # Campaign identifier in term column (normalized to lowercase)
+        "status_column": "current_state",  # current_state column (normalized to lowercase)
+        "ipa_column": "current_state",  # Use current_state for IPA tracking as well
+        "card_out_status": ["KYC_DONE"],  # Card out = KYC_DONE in current_state
+        "declined_status": ["REJECTED"],  # Declined = REJECTED in current_state
+        "ipa_approved_status": ["AC_CREATED"],  # IPA = AC_CREATED in current_state
+        "inprogress_status": [
+            "NOT_STARTED", "VKYC_PENDING", "IN_PROGRESS", "KYC_PENDING", "PAN_AADHAR_NOT_LINKED"
+        ],  # In progress statuses
+        "skip_mis_date_filter": True,  # KIWI processes ALL MIS records regardless of identifier dates
+        **UNIFIED_COLOR_SCHEME
+    },
+    "IndusInd Bank": {
+        "sheet_gid": "421802545",
+        "identifier_column": "utm_content",  # Campaign identifier in utm_content column (normalized to lowercase)
+        "status_column": "stage",  # Stage column for status tracking (normalized to lowercase)
+        "ipa_column": "stage",  # Use stage column for IPA tracking as well
+        "card_out_status": ["APPROVED"],  # Card out = Approved in Stage
+        "declined_status": ["SYSTEM DECLINE", "CREDIT DECLINE"],  # Declined statuses
+        "ipa_approved_status": ["POST-BRE PENDENCY", "PRE-BRE PENDENCY"],  # IPA approved = POST-BRE PENDENCY and PRE-BRE PENDENCY
+        "inprogress_status": [
+            "VKYC PENDING", "WIP"
+        ],  # In progress statuses (other statuses not explicitly card out, declined, or IPA)
+        "skip_mis_date_filter": True,  # IndusInd processes ALL MIS records regardless of identifier dates
         **UNIFIED_COLOR_SCHEME
     }
 }

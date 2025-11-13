@@ -159,11 +159,11 @@ def load_google_sheet(url: str) -> Optional[pd.DataFrame]:
 
 def load_excel_file(file, sheet_name=0):
     """
-    Load Excel file with automatic engine detection
+    Load Excel or CSV file with automatic format detection
 
     Args:
         file: File object
-        sheet_name: Sheet name or index
+        sheet_name: Sheet name or index (only for Excel files)
 
     Returns:
         DataFrame or None if error
@@ -171,6 +171,13 @@ def load_excel_file(file, sheet_name=0):
     try:
         file_extension = file.name.split('.')[-1].lower()
 
+        # Handle CSV files
+        if file_extension == 'csv':
+            df = pd.read_csv(file)
+            df.columns = df.columns.str.strip()
+            return df
+
+        # Handle Excel files
         if file_extension == 'xls':
             engine = 'xlrd'
         elif file_extension == 'xlsb':
@@ -181,7 +188,7 @@ def load_excel_file(file, sheet_name=0):
         df = pd.read_excel(file, sheet_name=sheet_name, engine=engine)
         return df
     except Exception as e:
-        st.error(f"❌ Error loading Excel file: {e}")
+        st.error(f"❌ Error loading file: {e}")
         return None
 
 

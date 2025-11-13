@@ -43,6 +43,14 @@ class CampaignDataProcessor:
         # Normalize MIS columns
         df_mis = normalize_dataframe_columns(df_mis)
 
+        # Filter MIS data by date range from identifiers (unless bank config skips this)
+        if not self.bank_config.get("skip_mis_date_filter", False):
+            df_mis = self._filter_mis_by_date_range(df_identifiers, df_mis)
+
+            if df_mis is None or len(df_mis) == 0:
+                st.warning("⚠️ No MIS data found within the identifiers date range")
+                return None, None
+
         # Find required columns
         identifier_col = find_column(df_mis, self.bank_config["identifier_column"])
         status_col = find_column(df_mis, self.bank_config["status_column"])
@@ -74,7 +82,7 @@ class CampaignDataProcessor:
 
         # Create summary DataFrame
         self.df_summary = pd.DataFrame(output_rows)
-        self.df_summary['Date'] = pd.to_datetime(self.df_summary['Date'], errors='coerce')
+        self.df_summary['Date'] = pd.to_datetime(self.df_summary['Date'], format='%d-%m-%Y',errors='coerce')
 
         # Combine matched MIS records
         if matched_mis_records:
@@ -168,11 +176,20 @@ class CampaignDataProcessor:
         ipa_approved = 0
 
         # Card Out calculation
-        if ops_status_col and ops_status_col in df_filtered.columns:
+        # For Scapia, always use status_column even if ops_status_column exists
+        if "ipa_card_issued_status" in self.bank_config:
+            # Scapia: Card Out from status_column
+            if status_col and status_col in df_filtered.columns:
+                card_out = get_status_counts(
+                    df_filtered, status_col, self.bank_config["card_out_status"]
+                )
+        elif ops_status_col and ops_status_col in df_filtered.columns:
+            # Other banks: Try ops_status_column first
             card_out = get_status_counts(
                 df_filtered, ops_status_col, self.bank_config["card_out_status"]
             )
         elif status_col and status_col in df_filtered.columns:
+            # Fallback to status_column
             card_out = get_status_counts(
                 df_filtered, status_col, self.bank_config["card_out_status"]
             )
@@ -183,15 +200,47 @@ class CampaignDataProcessor:
                 df_filtered, status_col, self.bank_config["declined_status"]
             )
 
-        # IPA Approved calculation
-        if ipa_col and ipa_col in df_filtered.columns:
-            ipa_approved = get_status_counts(
-                df_filtered, ipa_col, self.bank_config["ipa_approved_status"]
-            )
+        # IPA Approved calculation - Special logic for Scapia
+        # Scapia: IPA = card_issued = "ISSUED" AND current_status = "IN_PROGRESS"
+        if "ipa_card_issued_status" in self.bank_config and ops_status_col:
+            # This is Scapia - use special logic
+            # IPA = card_issued = "ISSUED" AND current_status = "IN_PROGRESS"
+            if status_col and status_col in df_filtered.columns and ops_status_col and ops_status_col in df_filtered.columns:
+                ipa_approved = len(df_filtered[
+                    (df_filtered[ops_status_col].astype(str).str.upper() == "ISSUED") &
+                    (df_filtered[status_col].astype(str).str.upper() == "IN_PROGRESS")
+                ])
+            else:
+                ipa_approved = 0
         else:
-            ipa_approved = card_out
+            # Standard IPA calculation for other banks
+            if ipa_col and ipa_col in df_filtered.columns:
+                ipa_approved = get_status_counts(
+                    df_filtered, ipa_col, self.bank_config["ipa_approved_status"]
+                )
+            else:
+                # FIX: If IPA column not found, set to 0 instead of card_out
+                # This prevents showing same numbers for Applications and Card Out
+                ipa_approved = 0
+                # Optionally log this for debugging
+                if len(df_filtered) > 0:
+                    st.warning(f"⚠️ IPA column '{self.bank_config.get('ipa_column', 'N/A')}' not found in MIS data. IPA Approved will be set to 0.")
 
+        # CRITICAL FIX: In Progress calculation
+        # Applications = Total count of MIS records
+        # IPA Approved = Records that got IPA approval
+        # Card Out = Records that got final card (subset of IPA in most cases)
+        # Declined = Records that were rejected
+        # In Progress = Records not yet declined and not card_out
+        #
+        # The correct hierarchy is:
+        # Applications = Card Out + Declined + In Progress
+        # (IPA Approved overlaps with Card Out and In Progress, it's not a separate bucket)
         in_progress = applications - card_out - declined
+
+        # Ensure in_progress doesn't go negative (data quality issue)
+        if in_progress < 0:
+            in_progress = 0
 
         return {
             'card_out': card_out,
@@ -281,6 +330,109 @@ class CampaignDataProcessor:
             cols[indices] = [f"{dup}_{i}" if i != 0 else dup for i in range(len(indices))]
         df.columns = cols
         return df
+
+    def _filter_mis_by_date_range(self, df_identifiers, df_mis):
+        """
+        Filter MIS data based on the date range present in identifiers sheet
+
+        Args:
+            df_identifiers: DataFrame with campaign identifiers and dates
+            df_mis: DataFrame with MIS data
+
+        Returns:
+            Filtered MIS DataFrame
+        """
+        try:
+            # Ensure identifiers Date column is datetime
+            if 'Date' not in df_identifiers.columns:
+                st.warning("⚠️ No Date column found in identifiers, skipping date filtering")
+                return df_mis
+
+            # Get date range from identifiers
+            identifier_dates = pd.to_datetime(df_identifiers['Date'], errors='coerce')
+            identifier_dates = identifier_dates.dropna()
+
+            if len(identifier_dates) == 0:
+                st.warning("⚠️ No valid dates found in identifiers, skipping date filtering")
+                return df_mis
+
+            min_date = identifier_dates.min()
+            max_date = identifier_dates.max()
+
+            st.info(f"📅 Filtering MIS data from {min_date.strftime('%d-%m-%Y')} to {max_date.strftime('%d-%m-%Y')}")
+
+            # Find date column in MIS data
+            # Common date column names in MIS files
+            date_column_patterns = [
+                'date', 'application_date', 'app_date', 'created_date',
+                'submission_date', 'lead_date', 'application date',
+                'created date', 'app date', 'lead date', 'timestamp',
+                'created_at', 'application_timestamp', 'login date'
+            ]
+
+            mis_date_col = None
+            for col in df_mis.columns:
+                col_lower = str(col).lower().strip()
+                for pattern in date_column_patterns:
+                    if pattern in col_lower:
+                        mis_date_col = col
+                        break
+                if mis_date_col:
+                    break
+
+            if mis_date_col is None:
+                st.warning("⚠️ No date column found in MIS data, skipping date filtering. Processing all MIS records.")
+                return df_mis
+
+            # Convert MIS date column to datetime with multiple format attempts
+            df_mis_copy = df_mis.copy()
+
+            # Try multiple date parsing strategies
+            date_parsed = False
+
+            # Strategy 1: Try inferring format automatically
+            df_mis_copy[mis_date_col] = pd.to_datetime(df_mis_copy[mis_date_col], errors='coerce')
+            valid_dates = df_mis_copy[mis_date_col].notna().sum()
+
+            # Strategy 2: If most dates are invalid, try common formats
+            if valid_dates < len(df_mis_copy) * 0.5:  # Less than 50% parsed successfully
+                # Try DD-MM-YYYY format
+                df_mis_copy[mis_date_col] = pd.to_datetime(df_mis_copy[mis_date_col], format='%d-%m-%Y', errors='coerce')
+                valid_dates = df_mis_copy[mis_date_col].notna().sum()
+
+                if valid_dates < len(df_mis_copy) * 0.5:
+                    # Try DD/MM/YYYY format
+                    df_mis_copy[mis_date_col] = pd.to_datetime(df_mis_copy[mis_date_col], format='%d/%m/%Y', errors='coerce')
+                    valid_dates = df_mis_copy[mis_date_col].notna().sum()
+
+            # Check if we have any valid dates
+            if valid_dates == 0:
+                st.warning(f"⚠️ Could not parse dates in column '{mis_date_col}'. Processing all MIS records.")
+                return df_mis
+
+            # Filter MIS data by date range (only consider rows with valid dates)
+            original_count = len(df_mis_copy)
+            df_filtered = df_mis_copy[
+                (df_mis_copy[mis_date_col].notna()) &
+                (df_mis_copy[mis_date_col] >= min_date) &
+                (df_mis_copy[mis_date_col] <= max_date)
+            ]
+            filtered_count = len(df_filtered)
+
+            # If we filtered out too many records (>95%), warn and use all data
+            if filtered_count < original_count * 0.05 and filtered_count < 100:
+                st.warning(f"⚠️ Date filtering removed {original_count - filtered_count:,} records. This may indicate a date format mismatch. Processing all MIS records.")
+                st.info(f"📊 Date range in identifiers: {min_date.strftime('%d-%m-%Y')} to {max_date.strftime('%d-%m-%Y')}")
+                st.info(f"📊 Sample dates from MIS: {df_mis_copy[mis_date_col].dropna().head(3).dt.strftime('%d-%m-%Y').tolist()}")
+                return df_mis
+
+            st.success(f"✅ Filtered {filtered_count:,} records out of {original_count:,} from MIS data based on identifier dates")
+
+            return df_filtered
+
+        except Exception as e:
+            st.warning(f"⚠️ Error during date filtering: {str(e)}. Processing all MIS records.")
+            return df_mis
 
     def apply_filters(self, df, date_range=None, source=None, channel=None, campaign=None):
         """

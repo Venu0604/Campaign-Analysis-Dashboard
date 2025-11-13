@@ -73,7 +73,7 @@ with st.sidebar:
        with st.expander(f"🏦 {bank}", expanded=False):
            uploaded_file = st.file_uploader(
                f"Upload {bank} MIS",
-               type=["xlsx", "xls", "xlsb"],
+               type=["xlsx", "xls", "xlsb", "csv"],
                key=f"upload_{bank_key}",
                label_visibility="collapsed"
            )
@@ -111,6 +111,7 @@ with st.sidebar:
                                    df_summary, df_matched_mis = processor.process_campaign_data(
                                        df_identifiers, df_mis
                                    )
+
 
                                    if df_summary is not None:
                                        st.session_state.bank_data[bank] = {
@@ -165,6 +166,13 @@ with st.sidebar:
            for key in keys_to_delete:
                if key in st.session_state.bank_data:
                    del st.session_state.bank_data[key]
+
+           # Clear all file uploader widgets
+           for bank in get_all_bank_names():
+               bank_key = bank.replace(' ', '_').lower()
+               upload_key = f"upload_{bank_key}"
+               if upload_key in st.session_state:
+                   del st.session_state[upload_key]
 
            # Reset other session state variables
            st.session_state.view_mode = 'overview'
@@ -317,7 +325,7 @@ if st.session_state.view_mode == 'overview':
             """, unsafe_allow_html=True)
 
 
-    # Show loaded banks count
+    # Show loaded banks count and filters
     if st.session_state.bank_data:
         st.markdown(f"""
             <div style='background: white; padding: 0.85rem 1.25rem; border-radius: 12px; margin: 0.5rem 0; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);'>
@@ -326,6 +334,49 @@ if st.session_state.view_mode == 'overview':
                 </p>
             </div>
         """, unsafe_allow_html=True)
+
+        # Add Date Filter Section
+        st.markdown("### 🔍 Filter by Date Range")
+
+        # Get min and max dates across all banks
+        all_dates = []
+        for bank, data in st.session_state.bank_data.items():
+            df = data['summary']
+            if 'Date' in df.columns:
+                all_dates.extend(df['Date'].dropna().tolist())
+
+        if all_dates:
+            min_date = pd.to_datetime(min(all_dates)).date()
+            max_date = pd.to_datetime(max(all_dates)).date()
+
+            filter_col1, filter_col2, filter_col3 = st.columns([2, 2, 3])
+
+            with filter_col1:
+                start_date = st.date_input(
+                    "Start Date",
+                    value=min_date,
+                    min_value=min_date,
+                    max_value=max_date,
+                    key='overview_start_date'
+                )
+
+            with filter_col2:
+                end_date = st.date_input(
+                    "End Date",
+                    value=max_date,
+                    min_value=min_date,
+                    max_value=max_date,
+                    key='overview_end_date'
+                )
+
+            with filter_col3:
+                if start_date > end_date:
+                    st.error("⚠️ Start date must be before or equal to end date")
+                else:
+                    total_days = (end_date - start_date).days + 1
+                    st.info(f"📅 Analyzing {total_days} days of data ({start_date.strftime('%d-%m-%Y')} to {end_date.strftime('%d-%m-%Y')})")
+
+        st.markdown("---")
 
 
     if not st.session_state.bank_data:
@@ -377,8 +428,20 @@ if st.session_state.view_mode == 'overview':
         all_summaries = []
         bank_wise_stats = []
 
+        # Apply date filter if dates are selected
+        date_filter_active = False
+        if all_dates:
+            date_filter_active = True
+            filter_start = pd.Timestamp(start_date)
+            filter_end = pd.Timestamp(end_date)
+
         for bank, data in st.session_state.bank_data.items():
             df = data['summary'].copy()
+
+            # Apply date filter
+            if date_filter_active and 'Date' in df.columns:
+                df = df[(df['Date'] >= filter_start) & (df['Date'] <= filter_end)]
+
             df['Bank'] = bank
             all_summaries.append(df)
 
@@ -386,6 +449,11 @@ if st.session_state.view_mode == 'overview':
             stats = data['processor'].get_summary_statistics(df)
             stats['Bank'] = bank
             bank_wise_stats.append(stats)
+
+        # Show filter summary
+        if date_filter_active:
+            total_campaigns = sum([len(df) for df in all_summaries])
+            st.success(f"✅ Showing {total_campaigns} campaigns within the selected date range")
 
         # Combine all data
         df_combined = pd.concat(all_summaries, ignore_index=True)
@@ -547,12 +615,11 @@ if st.session_state.view_mode == 'overview':
 
         with viz_row1_col1:
             # Card Out by Source & Bank (REPLACEMENT for Applications vs Card Out)
-            # Get source-wise card out data from all banks
+            # Get source-wise card out data from all banks (USE FILTERED DATA FROM all_summaries)
             source_cardout_data = []
-            for bank, data in st.session_state.bank_data.items():
-                df = data['summary']
-                # Check if Source column exists in the summary
-                if 'Source' in df.columns:
+            for df in all_summaries:
+                if len(df) > 0 and 'Source' in df.columns and 'Bank' in df.columns:
+                    bank = df['Bank'].iloc[0]
                     source_stats = df.groupby('Source').agg({'Card Out': 'sum'}).reset_index()
                     source_stats['Bank'] = bank
                     source_cardout_data.append(source_stats)
@@ -777,30 +844,119 @@ if st.session_state.view_mode == 'overview':
         # Export Section
         # -------------------------
         st.markdown("### 📥 Export Reports")
+
+        # Add date range info to export if filter is active
+        export_filename_suffix = datetime.now().strftime('%Y%m%d')
+        if date_filter_active:
+            export_filename_suffix = f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}"
+
         export_col1, export_col2 = st.columns(2)
         with export_col1:
             output = BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                # Export filtered bank comparison
                 bank_comparison.to_excel(writer, sheet_name="Bank Comparison", index=False)
+
+                # ====== SOURCE-WISE ANALYSIS ======
+                # Create comprehensive source-wise analysis
+                source_analysis_data = []
+
                 for bank, data in st.session_state.bank_data.items():
-                    sheet_name = bank.replace(' ', '_')[:31]
-                    data['summary'].to_excel(writer, sheet_name=sheet_name, index=False)
+                    df = data['summary'].copy()
+
+                    # Apply date filter
+                    if date_filter_active and 'Date' in df.columns:
+                        df = df[(df['Date'] >= filter_start) & (df['Date'] <= filter_end)]
+
+                    # Group by source for this bank
+                    if 'Source' in df.columns:
+                        source_stats = df.groupby('Source').agg({
+                            'Applications': 'sum',
+                            'IPA Approved': 'sum',
+                            'Card Out': 'sum',
+                            'Declined': 'sum',
+                            'Total cost (₹)': 'sum',
+                            'Delivered': 'sum',
+                            'Clicks': 'sum'
+                        }).reset_index()
+
+                        # Calculate efficiency metrics per source
+                        source_stats['Bank'] = bank
+                        source_stats['CTR (%)'] = (source_stats['Clicks'] / source_stats['Delivered'] * 100).round(2).fillna(0)
+                        source_stats['CPA (₹)'] = (source_stats['Total cost (₹)'] / source_stats['Applications']).round(2).fillna(0)
+                        source_stats['Cost per Card Out (₹)'] = (source_stats['Total cost (₹)'] / source_stats['Card Out']).round(2).fillna(0)
+                        source_stats['App→IPA (%)'] = (source_stats['IPA Approved'] / source_stats['Applications'] * 100).round(1).fillna(0)
+                        source_stats['IPA→Card (%)'] = (source_stats['Card Out'] / source_stats['IPA Approved'] * 100).round(1).fillna(0)
+                        source_stats['App→Card (%)'] = (source_stats['Card Out'] / source_stats['Applications'] * 100).round(1).fillna(0)
+
+                        source_analysis_data.append(source_stats)
+
+                # Combine all source analysis data
+                if source_analysis_data:
+                    df_source_analysis = pd.concat(source_analysis_data, ignore_index=True)
+
+                    # Reorder columns for better readability
+                    column_order = [
+                        'Bank', 'Source', 'Applications', 'IPA Approved', 'Card Out', 'Declined',
+                        'Total cost (₹)', 'CPA (₹)', 'Cost per Card Out (₹)',
+                        'CTR (%)', 'App→IPA (%)', 'IPA→Card (%)', 'App→Card (%)',
+                        'Delivered', 'Clicks'
+                    ]
+                    df_source_analysis = df_source_analysis[column_order]
+
+                    # Sort by Bank and then by Card Out descending
+                    df_source_analysis = df_source_analysis.sort_values(['Bank', 'Card Out'], ascending=[True, False])
+
+                    # Export source analysis
+                    df_source_analysis.to_excel(writer, sheet_name="Source Analysis", index=False)
+
+                    # Create a pivot summary: Sources as rows, Banks as columns, Card Out as values
+                    df_source_pivot = df_source_analysis.pivot_table(
+                        index='Source',
+                        columns='Bank',
+                        values='Card Out',
+                        aggfunc='sum',
+                        fill_value=0
+                    ).reset_index()
+
+                    # Add total column
+                    df_source_pivot['Total Card Out'] = df_source_pivot.select_dtypes(include='number').sum(axis=1)
+
+                    # Sort by total descending
+                    df_source_pivot = df_source_pivot.sort_values('Total Card Out', ascending=False)
+
+                    # NOTE: Source Card Out Matrix and Source Cost Efficiency sheets removed as per user request
+                    # The Source Analysis sheet already contains all this information
+
+                # Export filtered data for each bank
+                for bank, data in st.session_state.bank_data.items():
+                    df = data['summary'].copy()
+
+                    # Apply date filter
+                    if date_filter_active and 'Date' in df.columns:
+                        df = df[(df['Date'] >= filter_start) & (df['Date'] <= filter_end)]
+
+                    if len(df) > 0:
+                        sheet_name = bank.replace(' ', '_')[:31]
+                        df.to_excel(writer, sheet_name=sheet_name, index=False)
             output.seek(0)
             st.download_button(
-                "📊 Download Excel Report",
+                "📊 Download Excel Report (Filtered)",
                 data=output,
-                file_name=f"Multi_Bank_Report_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                file_name=f"Multi_Bank_Report_{export_filename_suffix}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                width='stretch'
+                use_container_width=True,
+                help="Downloads data for the selected date range"
             )
         with export_col2:
             csv_data = bank_comparison.to_csv(index=False)
             st.download_button(
-                "📄 Download CSV",
+                "📄 Download CSV (Filtered)",
                 data=csv_data,
-                file_name=f"Multi_Bank_Data_{datetime.now().strftime('%Y%m%d')}.csv",
+                file_name=f"Multi_Bank_Data_{export_filename_suffix}.csv",
                 mime="text/csv",
-                width='stretch'
+                use_container_width=True,
+                help="Downloads comparison data for the selected date range"
             )
 
 # -------------------------
@@ -828,8 +984,80 @@ elif st.session_state.view_mode == 'bank_detail':
         df_matched_mis = bank_data['matched_mis']
         processor = bank_data['processor']
 
-        # Get statistics
-        stats = processor.get_summary_statistics(df_summary)
+        # Add Filters Section
+        st.markdown("### 🔍 Data Filters")
+        filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
+
+        with filter_col1:
+            # Date range filter
+            if 'Date' in df_summary.columns and len(df_summary) > 0:
+                min_date = df_summary['Date'].min().date()
+                max_date = df_summary['Date'].max().date()
+
+                date_range = st.date_input(
+                    "Date Range",
+                    value=(min_date, max_date),
+                    min_value=min_date,
+                    max_value=max_date,
+                    key=f'date_filter_{selected_bank}'
+                )
+            else:
+                date_range = None
+
+        with filter_col2:
+            # Source filter
+            sources = ['All Sources'] + sorted(df_summary['Source'].unique().tolist())
+            selected_source = st.selectbox(
+                "Source",
+                options=sources,
+                key=f'source_filter_{selected_bank}'
+            )
+
+        with filter_col3:
+            # Channel filter
+            channels = ['All Channels'] + sorted(df_summary['Channel'].unique().tolist())
+            selected_channel = st.selectbox(
+                "Channel",
+                options=channels,
+                key=f'channel_filter_{selected_bank}'
+            )
+
+        with filter_col4:
+            # Campaign filter
+            campaigns = ['All Campaigns'] + sorted(df_summary['Campaign name'].unique().tolist())
+            selected_campaign = st.selectbox(
+                "Campaign",
+                options=campaigns,
+                key=f'campaign_filter_{selected_bank}'
+            )
+
+        # Apply filters
+        df_filtered = processor.apply_filters(
+            df_summary,
+            date_range=date_range if date_range and len(date_range) == 2 else None,
+            source=selected_source if selected_source != 'All Sources' else None,
+            channel=selected_channel if selected_channel != 'All Channels' else None,
+            campaign=selected_campaign if selected_campaign != 'All Campaigns' else None
+        )
+
+        # Filter matched MIS data based on filtered campaigns
+        if len(df_matched_mis) > 0 and 'Matched_Identifier' in df_matched_mis.columns:
+            # Get list of campaign identifiers that passed the filter
+            filtered_identifiers = df_filtered['Campaign name'].unique().tolist()
+            # Filter matched MIS to only include records from filtered campaigns
+            df_matched_mis = df_matched_mis[df_matched_mis['Matched_Identifier'].isin(filtered_identifiers)]
+
+        # Show filter info
+        if len(df_filtered) < len(df_summary):
+            st.info(f"📊 Showing {len(df_filtered)} out of {len(df_summary)} campaigns based on filters | {len(df_matched_mis):,} MIS records")
+
+        st.markdown("---")
+
+        # Get statistics from filtered data
+        stats = processor.get_summary_statistics(df_filtered)
+
+        # Use filtered data for all displays
+        df_summary = df_filtered
 
         # Key Metrics
         st.markdown("### 📊 Overall Performance Summary")
@@ -1054,45 +1282,111 @@ elif st.session_state.view_mode == 'bank_detail':
 
         # Export options for detail view
         st.markdown("### 📥 Export Campaign Data")
+
+        # Determine if filters are active and build filter description
+        filter_descriptions = []
+        filters_active = False
+
+        if date_range and len(date_range) == 2:
+            start_d, end_d = date_range
+            if start_d != bank_data['summary']['Date'].min().date() or end_d != bank_data['summary']['Date'].max().date():
+                filter_descriptions.append(f"Date: {start_d.strftime('%d-%m-%Y')} to {end_d.strftime('%d-%m-%Y')}")
+                filters_active = True
+
+        if selected_source != 'All Sources':
+            filter_descriptions.append(f"Source: {selected_source}")
+            filters_active = True
+
+        if selected_channel != 'All Channels':
+            filter_descriptions.append(f"Channel: {selected_channel}")
+            filters_active = True
+
+        if selected_campaign != 'All Campaigns':
+            filter_descriptions.append(f"Campaign: {selected_campaign}")
+            filters_active = True
+
+        # Show filter info in export section
+        if filters_active:
+            st.info(f"📋 Active Filters: {' | '.join(filter_descriptions)}")
+
         export_col1, export_col2, export_col3 = st.columns(3)
-        
+
         with export_col1:
-            # Excel export
+            # Excel export - with filtered data
             output = BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 df_summary.to_excel(writer, sheet_name="Campaign Summary", index=False)
                 df_matched_mis.to_excel(writer, sheet_name="Matched MIS Data", index=False)
+
+                # ====== SOURCE-WISE ANALYSIS FOR INDIVIDUAL BANK ======
+                if 'Source' in df_summary.columns and len(df_summary) > 0:
+                    # Group by source
+                    source_stats = df_summary.groupby('Source').agg({
+                        'Applications': 'sum',
+                        'IPA Approved': 'sum',
+                        'Card Out': 'sum',
+                        'Declined': 'sum',
+                        'Total cost (₹)': 'sum',
+                        'Delivered': 'sum',
+                        'Clicks': 'sum'
+                    }).reset_index()
+
+                    # Calculate efficiency metrics per source
+                    source_stats['CTR (%)'] = (source_stats['Clicks'] / source_stats['Delivered'] * 100).round(2).fillna(0)
+                    source_stats['CPA (₹)'] = (source_stats['Total cost (₹)'] / source_stats['Applications']).round(2).fillna(0)
+                    source_stats['Cost per Card Out (₹)'] = (source_stats['Total cost (₹)'] / source_stats['Card Out']).round(2).fillna(0)
+                    source_stats['App→IPA (%)'] = (source_stats['IPA Approved'] / source_stats['Applications'] * 100).round(1).fillna(0)
+                    source_stats['IPA→Card (%)'] = (source_stats['Card Out'] / source_stats['IPA Approved'] * 100).round(1).fillna(0)
+                    source_stats['App→Card (%)'] = (source_stats['Card Out'] / source_stats['Applications'] * 100).round(1).fillna(0)
+
+                    # Calculate cost share
+                    total_cost = source_stats['Total cost (₹)'].sum()
+                    source_stats['Cost Share (%)'] = (source_stats['Total cost (₹)'] / total_cost * 100).round(2) if total_cost > 0 else 0
+
+                    # Sort by Card Out descending
+                    source_stats = source_stats.sort_values('Card Out', ascending=False)
+
+                    # Export source analysis
+                    source_stats.to_excel(writer, sheet_name="Source Analysis", index=False)
+
             output.seek(0)
+
+            # Create filename with filter indication
+            file_suffix = "Filtered" if filters_active else datetime.now().strftime('%Y%m%d')
+
             st.download_button(
-                "📊 Download Excel Report",
+                "📊 Download Excel Report (Filtered)" if filters_active else "📊 Download Excel Report",
                 data=output,
-                file_name=f"{selected_bank.replace(' ', '_')}_Report_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                file_name=f"{selected_bank.replace(' ', '_')}_Report_{file_suffix}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                width='stretch'
+                use_container_width=True,
+                help=f"Downloads {len(df_summary)} campaigns and {len(df_matched_mis)} MIS records based on current filters"
             )
 
         with export_col2:
-            # CSV export - Summary
+            # CSV export - Summary (filtered)
             csv_data = df_summary.to_csv(index=False)
             st.download_button(
-                "📄 Download Campaign Summary CSV",
+                "📄 Download Campaign Summary (Filtered)" if filters_active else "📄 Download Campaign Summary",
                 data=csv_data,
-                file_name=f"{selected_bank.replace(' ', '_')}_Campaigns_{datetime.now().strftime('%Y%m%d')}.csv",
+                file_name=f"{selected_bank.replace(' ', '_')}_Campaigns_{'Filtered' if filters_active else datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
-                width='stretch'
+                use_container_width=True,
+                help=f"Downloads {len(df_summary)} filtered campaigns"
             )
 
 
         with export_col3:
-            # CSV export - Matched MIS
+            # CSV export - Matched MIS (filtered)
             if len(df_matched_mis) > 0:
                 mis_csv_data = df_matched_mis.to_csv(index=False)
                 st.download_button(
-                    "📄 Download Matched MIS CSV",
+                    "📄 Download Matched MIS (Filtered)" if filters_active else "📄 Download Matched MIS",
                     data=mis_csv_data,
-                    file_name=f"{selected_bank.replace(' ', '_')}_MIS_{datetime.now().strftime('%Y%m%d')}.csv",
+                    file_name=f"{selected_bank.replace(' ', '_')}_MIS_{'Filtered' if filters_active else datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv",
-                    width='stretch'
+                    use_container_width=True,
+                    help=f"Downloads {len(df_matched_mis)} filtered MIS records"
                 )
             else:
                 st.info("No matched MIS records")
