@@ -1053,6 +1053,380 @@ elif st.session_state.view_mode == 'bank_detail':
 
         st.markdown("---")
 
+        # -------------------------
+        # Campaign Comparison Tool
+        # -------------------------
+        st.markdown("### 🔄 Campaign Comparison Tool")
+        st.markdown("Select 2-5 campaigns to compare their performance side-by-side")
+
+        # Campaign selection
+        available_campaigns = df_filtered['Campaign name'].unique().tolist()
+
+        if len(available_campaigns) >= 2:
+            col_select, col_action = st.columns([3, 1])
+
+            with col_select:
+                selected_campaigns = st.multiselect(
+                    "Select Campaigns to Compare (2-5)",
+                    options=available_campaigns,
+                    max_selections=5,
+                    key=f'campaign_compare_{selected_bank}',
+                    help="Choose between 2 and 5 campaigns for comparison"
+                )
+
+            with col_action:
+                if selected_campaigns and len(selected_campaigns) >= 2:
+                    st.markdown(f"<div style='padding: 0.5rem; background: #d1fae5; border-radius: 8px; text-align: center; margin-top: 1.7rem;'>"
+                               f"<span style='color: #065f46; font-weight: 700; font-size: 1.1rem;'>"
+                               f"✓ {len(selected_campaigns)} campaigns selected</span></div>",
+                               unsafe_allow_html=True)
+                elif selected_campaigns and len(selected_campaigns) == 1:
+                    st.warning("⚠️ Select at least one more")
+
+            # Show comparison if valid selection
+            if selected_campaigns and len(selected_campaigns) >= 2:
+                st.markdown("---")
+
+                # Filter data for selected campaigns
+                df_comparison = df_filtered[df_filtered['Campaign name'].isin(selected_campaigns)].copy()
+
+                # -------------------------
+                # Comparison Metrics Table
+                # -------------------------
+                st.markdown("#### 📊 Performance Comparison")
+
+                # Select key columns for comparison
+                comparison_cols = [
+                    'Campaign name', 'Source', 'Channel', 'Applications',
+                    'IPA Approved', 'Card Out', 'Declined',
+                    'Total cost (₹)', 'Cost per App (₹)',
+                    'CTR (%)', 'App→IPA (%)', 'IPA→Card (%)'
+                ]
+
+                # Create comparison dataframe
+                df_comp_display = df_comparison[comparison_cols].copy()
+
+                # Add performance indicators
+                df_comp_display['Card Out Rank'] = df_comp_display['Card Out'].rank(ascending=False).astype(int)
+                df_comp_display['CPA Rank'] = df_comp_display['Cost per App (₹)'].rank(ascending=True).astype(int)
+
+                # Calculate efficiency score (normalized)
+                max_cardout = df_comp_display['Card Out'].max()
+                min_cpa = df_comp_display['Cost per App (₹)'].min()
+
+                if max_cardout > 0 and min_cpa > 0:
+                    df_comp_display['Efficiency Score'] = (
+                        (df_comp_display['Card Out'] / max_cardout * 50) +
+                        (min_cpa / df_comp_display['Cost per App (₹)'] * 50)
+                    ).round(1)
+                else:
+                    df_comp_display['Efficiency Score'] = 0
+
+                # Style the comparison table
+                def highlight_best_worst(s):
+                    if s.name in ['Card Out', 'Applications', 'IPA Approved', 'CTR (%)', 'App→IPA (%)', 'IPA→Card (%)', 'Efficiency Score']:
+                        is_max = s == s.max()
+                        return ['background-color: #d1fae5; font-weight: 700;' if v else '' for v in is_max]
+                    elif s.name in ['Cost per App (₹)', 'Total cost (₹)', 'Declined']:
+                        is_min = s == s.min()
+                        return ['background-color: #dbeafe; font-weight: 700;' if v else '' for v in is_min]
+                    return ['' for _ in s]
+
+                styled_comparison = (df_comp_display.style
+                    .apply(highlight_best_worst, subset=['Card Out', 'Applications', 'IPA Approved',
+                                                         'Total cost (₹)', 'Cost per App (₹)',
+                                                         'CTR (%)', 'App→IPA (%)', 'IPA→Card (%)',
+                                                         'Declined', 'Efficiency Score'])
+                    .format({
+                        'Applications': '{:,.0f}',
+                        'IPA Approved': '{:,.0f}',
+                        'Card Out': '{:,.0f}',
+                        'Declined': '{:,.0f}',
+                        'Total cost (₹)': '₹{:,.2f}',
+                        'Cost per App (₹)': '₹{:.2f}',
+                        'CTR (%)': '{:.2f}%',
+                        'App→IPA (%)': '{:.1f}%',
+                        'IPA→Card (%)': '{:.1f}%',
+                        'Efficiency Score': '{:.1f}'
+                    })
+                    .set_properties(**{
+                        'color': '#0f172a',
+                        'background-color': 'white',
+                        'font-weight': '600',
+                        'font-size': '0.95rem',
+                        'font-family': 'Nunito',
+                        'text-align': 'center'
+                    })
+                    .set_table_styles([
+                        {'selector': 'th', 'props': [
+                            ('background-color', '#f1f5f9'),
+                            ('color', '#0f172a'),
+                            ('font-weight', '700'),
+                            ('font-size', '1rem'),
+                            ('border-bottom', '2px solid #cbd5e1'),
+                            ('text-align', 'center'),
+                            ('padding', '8px')
+                        ]},
+                        {'selector': 'td', 'props': [
+                            ('color', '#0f172a'),
+                            ('border-bottom', '1px solid #e2e8f0'),
+                            ('text-align', 'center'),
+                            ('padding', '8px')
+                        ]},
+                        {'selector': 'tr:hover', 'props': [('background-color', '#f8fafc')]},
+                        {'selector': '', 'props': [
+                            ('border', '1px solid #e2e8f0'),
+                            ('border-radius', '12px'),
+                            ('overflow', 'hidden')
+                        ]}
+                    ])
+                )
+
+                st.markdown(styled_comparison.to_html(), unsafe_allow_html=True)
+
+                # Legend for highlighting
+                st.markdown("""
+                    <div style='display: flex; gap: 1.5rem; justify-content: center; margin: 1rem 0; padding: 0.75rem; background: #f8fafc; border-radius: 8px;'>
+                        <span style='color: #0f172a; font-weight: 600;'>
+                            <span style='background: #d1fae5; padding: 0.25rem 0.5rem; border-radius: 4px;'>Green</span> = Best Performance
+                        </span>
+                        <span style='color: #0f172a; font-weight: 600;'>
+                            <span style='background: #dbeafe; padding: 0.25rem 0.5rem; border-radius: 4px;'>Blue</span> = Best Value (Lowest Cost)
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                # -------------------------
+                # Comparison Visualizations
+                # -------------------------
+                st.markdown("#### 📈 Visual Comparison")
+
+                viz_col1, viz_col2 = st.columns(2)
+
+                with viz_col1:
+                    # Bar chart comparison - Key Metrics
+                    metrics_data = df_comparison[['Campaign name', 'Applications', 'IPA Approved', 'Card Out']].copy()
+                    metrics_melted = metrics_data.melt(
+                        id_vars='Campaign name',
+                        var_name='Metric',
+                        value_name='Count'
+                    )
+
+                    fig_bar = px.bar(
+                        metrics_melted,
+                        x='Campaign name',
+                        y='Count',
+                        color='Metric',
+                        barmode='group',
+                        title="<b>Applications vs Card Out Comparison</b>",
+                        color_discrete_sequence=['#3b82f6', '#0ea5e9', '#fcc038']
+                    )
+
+                    fig_bar.update_traces(
+                        texttemplate='%{y:,.0f}',
+                        textposition='outside',
+                        textfont=dict(size=12, color='#0f172a', family='Nunito', weight='bold')
+                    )
+
+                    # Calculate max for proper spacing
+                    bar_max = metrics_melted['Count'].max()
+                    bar_y_max = bar_max * 1.25
+
+                    fig_bar.update_layout(
+                        height=400,
+                        template=theme_cfg['template'],
+                        paper_bgcolor=theme_cfg['bg_color'],
+                        plot_bgcolor=theme_cfg['bg_color'],
+                        font=dict(color='#0f172a', family='Nunito', size=11),
+                        title=dict(font=dict(size=14, color='#0f172a', family='Nunito')),
+                        xaxis=dict(
+                            tickangle=-45,
+                            tickfont=dict(size=10, color='#1e293b', family='Nunito')
+                        ),
+                        yaxis=dict(
+                            tickfont=dict(size=10, color='#1e293b', family='Nunito'),
+                            range=[0, bar_y_max]
+                        ),
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1,
+                            font=dict(size=10, color='#0f172a', family='Nunito')
+                        ),
+                        margin=dict(t=60, b=100, l=50, r=20)
+                    )
+
+                    st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
+
+                with viz_col2:
+                    # Efficiency Comparison - Cost vs Performance
+                    fig_scatter = go.Figure()
+
+                    fig_scatter.add_trace(go.Scatter(
+                        x=df_comparison['Cost per App (₹)'],
+                        y=df_comparison['Card Out'],
+                        mode='markers+text',
+                        marker=dict(
+                            size=df_comparison['Applications'] / df_comparison['Applications'].max() * 50 + 20,
+                            color=df_comparison['CTR (%)'],
+                            colorscale='Viridis',
+                            showscale=True,
+                            colorbar=dict(title="CTR %", titlefont=dict(size=10)),
+                            line=dict(width=2, color='white')
+                        ),
+                        text=df_comparison['Campaign name'].str[:15],
+                        textposition='top center',
+                        textfont=dict(size=10, color='#0f172a', family='Nunito', weight='bold'),
+                        hovertemplate='<b>%{text}</b><br>CPA: ₹%{x:.2f}<br>Card Out: %{y:,.0f}<extra></extra>'
+                    ))
+
+                    fig_scatter.update_layout(
+                        title=dict(
+                            text="<b>Cost Efficiency Analysis</b><br><sub>Bubble size = Applications | Color = CTR%</sub>",
+                            font=dict(size=14, color='#0f172a', family='Nunito')
+                        ),
+                        height=400,
+                        template=theme_cfg['template'],
+                        paper_bgcolor=theme_cfg['bg_color'],
+                        plot_bgcolor=theme_cfg['bg_color'],
+                        xaxis=dict(
+                            title=dict(text='Cost per App (₹)', font=dict(size=11, color='#0f172a')),
+                            gridcolor='#e2e8f0',
+                            tickfont=dict(size=10, color='#1e293b')
+                        ),
+                        yaxis=dict(
+                            title=dict(text='Card Out', font=dict(size=11, color='#0f172a')),
+                            gridcolor='#e2e8f0',
+                            tickfont=dict(size=10, color='#1e293b')
+                        ),
+                        font=dict(color='#0f172a', family='Nunito'),
+                        margin=dict(t=80, b=50, l=60, r=20)
+                    )
+
+                    st.plotly_chart(fig_scatter, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
+
+                # -------------------------
+                # Radar Chart - Multi-dimensional Comparison
+                # -------------------------
+                st.markdown("#### 🎯 Multi-Dimensional Performance Radar")
+
+                # Prepare data for radar chart (normalize to 0-100 scale)
+                radar_metrics = ['Applications', 'Card Out', 'CTR (%)', 'App→IPA (%)', 'IPA→Card (%)']
+
+                fig_radar = go.Figure()
+
+                # Color palette for campaigns
+                campaign_colors = ['#3b82f6', '#0ea5e9', '#fcc038', '#8b5cf6', '#ec4899']
+
+                for idx, campaign in enumerate(selected_campaigns):
+                    campaign_data = df_comparison[df_comparison['Campaign name'] == campaign].iloc[0]
+
+                    # Normalize values to 0-100 scale for better visualization
+                    normalized_values = []
+                    for metric in radar_metrics:
+                        max_val = df_comparison[metric].max()
+                        if max_val > 0:
+                            normalized_values.append((campaign_data[metric] / max_val) * 100)
+                        else:
+                            normalized_values.append(0)
+
+                    # Add campaign name to close the radar
+                    normalized_values.append(normalized_values[0])
+
+                    fig_radar.add_trace(go.Scatterpolar(
+                        r=normalized_values,
+                        theta=radar_metrics + [radar_metrics[0]],
+                        fill='toself',
+                        name=campaign[:25],
+                        line=dict(color=campaign_colors[idx % len(campaign_colors)], width=2),
+                        fillcolor=campaign_colors[idx % len(campaign_colors)],
+                        opacity=0.3,
+                        hovertemplate='<b>%{theta}</b><br>Score: %{r:.1f}/100<extra></extra>'
+                    ))
+
+                fig_radar.update_layout(
+                    polar=dict(
+                        radialaxis=dict(
+                            visible=True,
+                            range=[0, 100],
+                            tickfont=dict(size=10, color='#1e293b'),
+                            gridcolor='#e2e8f0'
+                        ),
+                        angularaxis=dict(
+                            tickfont=dict(size=11, color='#0f172a', family='Nunito', weight='bold'),
+                            gridcolor='#e2e8f0'
+                        ),
+                        bgcolor=theme_cfg['bg_color']
+                    ),
+                    height=450,
+                    template=theme_cfg['template'],
+                    paper_bgcolor=theme_cfg['bg_color'],
+                    font=dict(color='#0f172a', family='Nunito'),
+                    legend=dict(
+                        orientation="v",
+                        yanchor="top",
+                        y=1,
+                        xanchor="left",
+                        x=1.1,
+                        font=dict(size=10, color='#0f172a', family='Nunito')
+                    ),
+                    margin=dict(t=20, b=20, l=80, r=150)
+                )
+
+                st.plotly_chart(fig_radar, use_container_width=True, config={'displayModeBar': True, 'displaylogo': False})
+
+                # -------------------------
+                # Key Insights
+                # -------------------------
+                st.markdown("#### 💡 Key Insights")
+
+                insight_col1, insight_col2, insight_col3 = st.columns(3)
+
+                with insight_col1:
+                    best_cardout = df_comparison.loc[df_comparison['Card Out'].idxmax()]
+                    st.markdown(f"""
+                        <div style='background: #d1fae5; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;'>
+                            <p style='color: #065f46; font-weight: 700; font-size: 1rem; margin: 0;'>🏆 Best Card Out</p>
+                            <p style='color: #047857; font-size: 0.9rem; margin: 0.5rem 0 0 0; font-weight: 600;'>
+                                {best_cardout['Campaign name'][:30]}<br>
+                                <span style='font-size: 1.2rem;'>{int(best_cardout['Card Out']):,}</span> cards
+                            </p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+                with insight_col2:
+                    best_cpa = df_comparison.loc[df_comparison['Cost per App (₹)'].idxmin()]
+                    st.markdown(f"""
+                        <div style='background: #dbeafe; padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6;'>
+                            <p style='color: #1e40af; font-weight: 700; font-size: 1rem; margin: 0;'>💰 Best CPA</p>
+                            <p style='color: #1e3a8a; font-size: 0.9rem; margin: 0.5rem 0 0 0; font-weight: 600;'>
+                                {best_cpa['Campaign name'][:30]}<br>
+                                <span style='font-size: 1.2rem;'>₹{best_cpa['Cost per App (₹)']:.2f}</span> per app
+                            </p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+                with insight_col3:
+                    best_conversion = df_comparison.loc[df_comparison['App→IPA (%)'].idxmax()]
+                    st.markdown(f"""
+                        <div style='background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #fcc038;'>
+                            <p style='color: #92400e; font-weight: 700; font-size: 1rem; margin: 0;'>🎯 Best Conversion</p>
+                            <p style='color: #78350f; font-size: 0.9rem; margin: 0.5rem 0 0 0; font-weight: 600;'>
+                                {best_conversion['Campaign name'][:30]}<br>
+                                <span style='font-size: 1.2rem;'>{best_conversion['App→IPA (%)']:.1f}%</span> App→IPA
+                            </p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown("---")
+
+        else:
+            st.info("ℹ️ Not enough campaigns to compare. Apply different filters to see more campaigns.")
+
+        st.markdown("---")
+
         # Get statistics from filtered data
         stats = processor.get_summary_statistics(df_filtered)
 
